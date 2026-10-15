@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Renderer/Args.h"
+
 #include <memory>
 #include <vector>
 
@@ -15,7 +17,7 @@ namespace xII::Camera {
 
 namespace xII::Item {
     class Base {
-    private:
+    protected:
         // std::vector<std::unique_ptr<Base>> _subitems;
         std::vector<std::shared_ptr<Base>> _subitems;
 
@@ -44,7 +46,7 @@ namespace xII::Item {
         std::vector<std::shared_ptr<Base>>& getSubitemsR() { return _subitems; }
 
         virtual bool isInRange(const Camera::Base& camera) const;
-        virtual void Render(Camera::Standard& camera) const;
+        virtual void Render(Camera::Standard& camera, Item::Renderer::Args args) const;
         virtual void Render(Camera::Outline& camera) const;
     };
 } // namespace xII::Item
