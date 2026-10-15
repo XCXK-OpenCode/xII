@@ -71,7 +71,7 @@ namespace xII::Item::Renderer {
         }
     }
 
-    void Line::Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points) const {
+    void Line::Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points, Args &arg) const {
         Screen::PoSize screen_point = {0, 0};
         auto screen_size = camera.getScreen().getSize();
         auto map_point = camera.getPoint();
@@ -80,7 +80,7 @@ namespace xII::Item::Renderer {
         for (size_t i = 0; i < n; i++) {
             auto a = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[i]);
             auto b = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[(i + 1) % n]);
-            draw_line(camera.getScreenR(), a, b, _color, _width);
+            draw_line(camera.getScreenR(), a, b, arg.getColor(), 1);
         }
     }
 } // namespace xII::Item::Renderer

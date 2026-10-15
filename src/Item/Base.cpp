@@ -10,10 +10,10 @@ namespace xII::Item {
         return true;
     }
 
-    void Base::Render(Camera::Standard& camera) const {
+    void Base::Render(Camera::Standard& camera, Item::Renderer::Args args) const {
         for (const auto& subitem : _subitems)
             if (subitem->isInRange(camera))
-                subitem->Render(camera);
+                subitem->Render(camera, args);
     }
     void Base::Render(Camera::Outline& camera) const {
         for (const auto& subitem : _subitems)

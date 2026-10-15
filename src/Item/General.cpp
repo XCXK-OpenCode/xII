@@ -9,11 +9,15 @@
 #include "Screen/PointPos.h"
 
 namespace xII::Item {
-    void General::Render(Camera::Standard& camera) const {
+    void General::Render(Camera::Standard& camera, Item::Renderer::Args args) const {
         auto points = _shape->getPoints(0);
         for (auto& renderer : _renderers)
-            renderer->Render(camera, points);
+            renderer->Render(camera, points, args);
+        for (const auto& subitem : _subitems)
+            if (subitem->isInRange(camera))
+                subitem->Render(camera, args);
     }
+    
     void General::Render(Camera::Outline& camera) const {
         Screen::PoSize screen_point = {0, 0};
         auto screen_size = camera.getScreen().getSize();

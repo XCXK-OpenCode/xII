@@ -1,0 +1,25 @@
+//
+// Created by qpwser from XCXK on 2026-10-14
+//
+
+#pragma once
+
+#include "Screen/Screen.h"
+
+#include <functional>
+
+namespace xII::Item::Renderer {
+    class Args {
+    private:
+        uint8_t _alpha = 255;
+
+    public:
+        Args() = default;
+        ~Args() = default;
+
+        std::function<Screen::Screen::Pixel()> getColor = [this]() -> Screen::Screen::Pixel { return Screen::Screen::Pixel{0, 0, 0, _alpha}; };
+        uint8_t getAlpha() const { return _alpha; }
+        void setAlpha(uint8_t alpha) { _alpha = alpha; }
+        void multiplyAlpha(uint8_t alpha) { _alpha = static_cast<uint8_t>(_alpha * (alpha / 255.0f)); }
+    };
+} // namespace xII::Item::Renderer
