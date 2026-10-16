@@ -41,6 +41,7 @@
 #include "Item/Renderer/SetColor.h"
 #include "Item/Renderer/SetWidth.h"
 #include "Item/Renderer/Rainbow.h"
+#include "Item/Renderer/Fill.h"
 
 //屏幕尺寸常量
 const int SCREEN_WIDTH = 1280;
@@ -61,6 +62,7 @@ int main() {
     auto st_item_color = std::make_shared<xII::Item::Renderer::Rainbow1>();
     auto st_item_width = std::make_shared<xII::Item::Renderer::SetWidth>(10);
     auto st_item_line = std::make_shared<xII::Item::Renderer::Line>();
+    auto st_item_fill = std::make_shared<xII::Item::Renderer::Fill>();
 
     auto st_item1 = std::make_shared<xII::Item::General>(
         std::make_shared<xII::Item::Shape::Rectangle>(std::make_shared<xII::Space::OffsetPoint>(root_point, xII::Space::Offset(400, 200)), 600, 600),
@@ -70,7 +72,7 @@ int main() {
         std::vector<std::shared_ptr<xII::Item::Renderer::Base>>());
     st_item1->getRenderersR().push_back(st_item_color);
     st_item1->getRenderersR().push_back(st_item_width);
-    st_item1->getRenderersR().push_back(st_item_line);
+    st_item1->getRenderersR().push_back(st_item_fill);
 
     st_item2->getRenderersR().push_back(st_item_color);
     st_item2->getRenderersR().push_back(st_item_width);
