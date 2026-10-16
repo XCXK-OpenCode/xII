@@ -17,6 +17,6 @@ namespace xII::Item::Renderer {
         Screen::RGBA8888::Pixel getColor() const { return _color; }
 
         void Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points, Args &args) const override 
-        { args.getColor = [this, args]() -> Screen::Screen::Pixel { return {.A = args.getAlpha(), .R = _color.R, .G = _color.G, .B = _color.B}; }; };
+        { args.getColor = [this, args](const Args::DrawContext& ctx) -> Screen::Screen::Pixel { return {.A = args.getAlpha(), .R = _color.R, .G = _color.G, .B = _color.B}; }; };
     };
 } // namespace xII::Item::Renderer

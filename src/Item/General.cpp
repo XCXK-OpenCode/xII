@@ -30,7 +30,7 @@ namespace xII::Item {
                 Renderer::Line::draw_line(camera.getScreenR(),
                                           Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, *ItA),
                                           Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, *ItB),
-                                          camera.getColor(),
+                                          camera.getColor,
                                           camera.getWidth());
     }
 } // namespace xII::Item

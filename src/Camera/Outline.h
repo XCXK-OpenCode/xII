@@ -6,6 +6,7 @@
 
 #include "Base.h"
 #include "Screen/Screen.h"
+#include "Item/Renderer/Args.h"
 #include <cstddef>
 
 namespace xII::Camera {
@@ -27,7 +28,7 @@ namespace xII::Camera {
 
         ~Outline() override = default;
 
-        Screen::Screen::Pixel getColor() const { return _color; }
+        std::function<Screen::RGBA8888::Pixel(const Item::Renderer::Args::DrawContext&)> getColor = [this](const Item::Renderer::Args::DrawContext& ctx) -> Screen::Screen::Pixel { return _color; };
         void setColor(const Screen::Screen::Pixel& color) { _color = color; }
 
         size_t getWidth() const { return _width; }

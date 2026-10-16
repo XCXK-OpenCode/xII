@@ -14,7 +14,7 @@ namespace xII::Item::Renderer {
         static void draw_line(Screen::RGBA8888& screen,
                               const Screen::PoSize& A,
                               const Screen::PoSize& B,
-                              const Screen::RGBA8888::Pixel& color,
+                              const std::function<Screen::RGBA8888::Pixel(const Args::DrawContext&)>& getColor,
                               size_t width);
 
     public:
