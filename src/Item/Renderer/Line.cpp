@@ -3,75 +3,85 @@
 #include "Screen/PointPos.h"
 
 #include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <algorithm>
+#include <functional>
 
 namespace xII::Item::Renderer {
-    void Line::draw_line(Screen::RGBA8888& screen,
-                         const Screen::PoSize& A,
-                         const Screen::PoSize& B,
-                         const Screen::RGBA8888::Pixel& color,
-                         size_t width) {
-        if (width == 0)
-            return;
+        void Line::draw_line(Screen::RGBA8888& screen,
+                const Screen::PoSize& A,
+                const Screen::PoSize& B,
+                const std::function<Screen::RGBA8888::Pixel(const Args::DrawContext&)>& getColor,
+                size_t width,
+                const Screen::PoSize& item_pos,
+                const Screen::PoSize& item_size)
+    {
+        if (width == 0) return;
 
         const size_t W = screen.getSize().x;
         const size_t H = screen.getSize().y;
         Screen::RGBA8888::Pixel* data = screen.getData();
 
-        int x0 = static_cast<int>(A.x), y0 = static_cast<int>(A.y);
-        int x1 = static_cast<int>(B.x), y1 = static_cast<int>(B.y);
-        int dx = std::abs(x1 - x0), dy = std::abs(y1 - y0);
-        int sx = (x0 < x1) ? 1 : -1;
-        int sy = (y0 < y1) ? 1 : -1;
+        int64_t x0 = A.x, y0 = A.y;
+        int64_t x1 = B.x, y1 = B.y;
+        int64_t dx = std::llabs(x1 - x0), dy = std::llabs(y1 - y0);
+        int64_t sx = (x0 < x1) ? 1 : -1;
+        int64_t sy = (y0 < y1) ? 1 : -1;
 
-        // 计算沿法线方向的偏移量集合
-        const int half = static_cast<int>(width) / 2;
-        const int lo = -(half);
-        const int hi = (static_cast<int>(width) - 1) - half;
+        const int64_t half = static_cast<int64_t>(width) / 2;
+        const int64_t lo = -half;
+        const int64_t hi = static_cast<int64_t>(width) - 1 - half;
 
-        // 若线段更"水平"，沿 y 方向偏移；否则沿 x 方向偏移
         const bool horizontal = dx >= dy;
 
-        auto plot = [&](int px, int py) {
-            if (px >= 0 && py >= 0 &&
-                static_cast<size_t>(px) < W && static_cast<size_t>(py) < H) {
-                auto& dst = data[static_cast<size_t>(py) * W + static_cast<size_t>(px)];
-                dst = xII::Screen::RGBA8888::blend_alpha_pixel(color, dst);
+        const Screen::PoSize screen_size = screen.getSize();
+
+        auto plot = [&](int64_t px, int64_t py) {
+            if (px < 0 || py < 0) return;
+            const auto ux = static_cast<size_t>(px);
+            const auto uy = static_cast<size_t>(py);
+            if (ux >= W || uy >= H) return;
+
+            const Args::DrawContext ctx{
+                Screen::PoSize{ px, py },
+                screen_size,
+                item_pos,
+                item_size
+            };
+
+            const Screen::RGBA8888::Pixel color = getColor(ctx);
+
+            auto& dst = data[uy * W + ux];
+            if (color.A == 255) {
+                dst = color;
+            } else if (color.A != 0) {
+                dst = Screen::RGBA8888::blend_alpha_pixel(color, dst);
             }
         };
 
-        for (int off = lo; off <= hi; ++off) {
-            int cx0 = x0, cy0 = y0;
-            int cx1 = x1, cy1 = y1;
-            if (horizontal) {
-                cy0 += off;
-                cy1 += off;
-            } else {
-                cx0 += off;
-                cx1 += off;
-            }
+        for (int64_t off = lo; off <= hi; ++off) {
+            int64_t cx0 = x0, cy0 = y0;
+            int64_t cx1 = x1, cy1 = y1;
+            if (horizontal) { cy0 += off; cy1 += off; }
+            else            { cx0 += off; cx1 += off; }
 
-            int err = dx - dy;
-            int cx = cx0, cy = cy0;
-            const int ex = cx1, ey = cy1;
+            int64_t err = dx - dy;
+            int64_t cx = cx0, cy = cy0;
+            const int64_t ex = cx1, ey = cy1;
 
             while (true) {
                 plot(cx, cy);
-                if (cx == ex && cy == ey)
-                    break;
-                int e2 = 2 * err;
-                if (e2 > -dy) {
-                    err -= dy;
-                    cx += sx;
-                }
-                if (e2 < dx) {
-                    err += dx;
-                    cy += sy;
-                }
+                if (cx == ex && cy == ey) break;
+                int64_t e2 = 2 * err;
+                if (e2 > -dy) { err -= dy; cx += sx; }
+                if (e2 < dx)  { err += dx; cy += sy; }
             }
         }
     }
 
-    void Line::Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points) const {
+
+    void Line::Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points, Args &args, const Screen::PoSize& item_pos, const Screen::PoSize& item_size) const {
         Screen::PoSize screen_point = {0, 0};
         auto screen_size = camera.getScreen().getSize();
         auto map_point = camera.getPoint();
@@ -80,7 +90,7 @@ namespace xII::Item::Renderer {
         for (size_t i = 0; i < n; i++) {
             auto a = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[i]);
             auto b = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[(i + 1) % n]);
-            draw_line(camera.getScreenR(), a, b, _color, _width);
+            draw_line(camera.getScreenR(), a, b, args.getColor, args.getWidth(), item_pos, item_size);
         }
     }
 } // namespace xII::Item::Renderer

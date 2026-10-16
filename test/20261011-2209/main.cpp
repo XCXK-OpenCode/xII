@@ -38,6 +38,10 @@
 #include "Space/Point.h"
 #include "Space/OffsetPoint.h"
 #include "Item/Renderer/Line.h"
+#include "Item/Renderer/SetColor.h"
+#include "Item/Renderer/SetWidth.h"
+#include "Item/Renderer/Rainbow.h"
+#include "Item/Renderer/Fill.h"
 
 //屏幕尺寸常量
 const int SCREEN_WIDTH = 1280;
@@ -49,13 +53,16 @@ int main() {
     auto root_object = std::make_shared<xII::Item::Base>();
     auto root_point = std::make_shared<xII::Space::Point>();
     auto camera_center = std::make_shared<xII::Space::OffsetPoint>(root_point, xII::Space::Offset(0, 0));
-    auto camera = xII::Camera::Outline(
+    auto camera = xII::Camera::Standard(
         xII::Item::Shape::Rectangle(camera_center, 1920, 1080),
         {SCREEN_WIDTH, SCREEN_HEIGHT},
         root_object);
 
-    auto st_item_line = std::make_shared<xII::Item::Renderer::Line>(
-        xII::Screen::Screen::Pixel{255, 255, 255, 255}, 16);
+    // auto st_item_color = std::make_shared<xII::Item::Renderer::SetColor>(xII::Screen::Screen::RGBA8888::Pixel{.A = 255, .R = 255, .G = 0, .B = 0});
+    auto st_item_color = std::make_shared<xII::Item::Renderer::Rainbow1>();
+    auto st_item_width = std::make_shared<xII::Item::Renderer::SetWidth>(10);
+    auto st_item_line = std::make_shared<xII::Item::Renderer::Line>();
+    auto st_item_fill = std::make_shared<xII::Item::Renderer::Fill>();
 
     auto st_item1 = std::make_shared<xII::Item::General>(
         std::make_shared<xII::Item::Shape::Rectangle>(std::make_shared<xII::Space::OffsetPoint>(root_point, xII::Space::Offset(400, 200)), 600, 600),
@@ -63,7 +70,12 @@ int main() {
     auto st_item2 = std::make_shared<xII::Item::General>(
         std::make_shared<xII::Item::Shape::Rectangle>(std::make_shared<xII::Space::OffsetPoint>(root_point, xII::Space::Offset(-100, 100)), 800, 500),
         std::vector<std::shared_ptr<xII::Item::Renderer::Base>>());
-    st_item1->getRenderersR().push_back(st_item_line);
+    st_item1->getRenderersR().push_back(st_item_color);
+    st_item1->getRenderersR().push_back(st_item_width);
+    st_item1->getRenderersR().push_back(st_item_fill);
+
+    st_item2->getRenderersR().push_back(st_item_color);
+    st_item2->getRenderersR().push_back(st_item_width);
     st_item2->getRenderersR().push_back(st_item_line);
     root_object->addItem(st_item1);
     root_object->addItem(st_item2);
@@ -97,7 +109,7 @@ int main() {
     SDL_Surface* surface = SDL_CreateSurfaceFrom(
         camera.getScreenR().getSize().x, // 宽度
         camera.getScreenR().getSize().y, // 高度
-        SDL_PIXELFORMAT_RGBA8888,
+        SDL_PIXELFORMAT_BGRA8888,
         camera.getScreenR().getData(),
         camera.getScreenR().getSize().x * 4 // pitch（每行字节数）
     );

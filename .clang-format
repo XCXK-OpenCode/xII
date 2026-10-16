@@ -1,0 +1,54 @@
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+# ---- 缩进 ----
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+NamespaceIndentation: All
+
+# ---- 大括号：跟你现在一致（不换行）----
+BreakBeforeBraces: Attach
+
+# ---- 行宽：保住你的长 operator 行，不折 ----
+ColumnLimit: 0
+
+# ---- 空格：修第 1 个问题（逗号前空格 -> 逗号后空格）----
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+SpacesInParentheses: false          # ( x ) -> (x)
+SpacesInSquareBrackets: false       # [ x ] -> [x]
+SpacesInAngles: Never               # < T > -> <T>
+SpaceBeforeRangeBasedForLoopColon: true
+# clang-format 默认就会把 "l , r" 改成 "l, r"，无需额外项
+
+# ---- 空行：修第 2 个（压缩多余，但不强加）----
+MaxEmptyLinesToKeep: 1              # 多个空行压成 1 个
+KeepEmptyLinesAtTheStartOfBlocks: false
+EmptyLineBeforeAccessModifier: Leave   # public:/private: 前空行保持原样，不强制
+
+# ---- 短函数：保留你的单行 getter ----
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+
+# ---- include 不动 ----
+SortIncludes: false
+IncludeBlocks: Preserve
+
+# ---- 其它保守设置，尽量少动你的代码 ----
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+PackConstructorInitializers: Never    # 初始化列表不重排
+BinPackArguments: true
+BinPackParameters: true
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+ReflowComments: false                 # 不重排注释内容（第 3 个问题不碰）

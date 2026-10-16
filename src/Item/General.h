@@ -33,7 +33,7 @@ namespace xII::Item {
         const std::vector<std::shared_ptr<Renderer::Base>>& getRenderersR() const { return _renderers; }
         void setRenderers(const std::vector<std::shared_ptr<Renderer::Base>>& renderers) { _renderers = renderers; }
 
-        void Render(Camera::Standard& camera) const override;
+        void Render(Camera::Standard& camera, Item::Renderer::Args args) const override;
         void Render(Camera::Outline& camera) const override;
     };
 } // namespace xII::Item
