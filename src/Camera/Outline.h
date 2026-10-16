@@ -20,9 +20,10 @@ namespace xII::Camera {
         Outline(const Item::Shape::Rectangle& shape,
                 const Screen::PoSize& screen_size,
                 const std::shared_ptr<Item::Base>& object,
+                const std::shared_ptr<Time::OffsetPoint>& time_point,
                 const Screen::Screen::Pixel& color = {191, 0, 255, 127},
                 size_t width = 2)
-            : Base(shape, screen_size, object),
+            : Base(shape, screen_size, object, time_point),
               _color(color),
               _width(width) {}
 
