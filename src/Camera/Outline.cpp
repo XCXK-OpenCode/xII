@@ -13,7 +13,7 @@ namespace xII::Camera {
                                            {{0, 0}, getScreenR().getSize()},
                                            {{0, getScreenR().getSize().y}, {getScreenR().getSize().x, 0}}};
         for (auto& pair : pairs)
-            Item::Renderer::Line::draw_line(getScreenR(), pair[0], pair[1], getColor, getWidth());
+            Item::Renderer::Line::draw_line(getScreenR(), pair[0], pair[1], getColor, getWidth(), {0, 0}, getScreenR().getSize());
 
         _object->Render(*this);
     }

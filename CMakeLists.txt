@@ -9,10 +9,11 @@ include_directories(src)
 add_library(xII STATIC
     src/Camera/Outline.cpp
     src/Camera/Standard.cpp
-    src/Item/Renderer/Line.cpp
-    src/Item/Shape/Rectangle.cpp
     src/Item/Base.cpp
     src/Item/General.cpp
+    src/Item/Renderer/Rainbow.cpp
+    src/Item/Renderer/Line.cpp
+    src/Item/Shape/Rectangle.cpp
     src/Screen/RGBA8888.cpp
     src/Screen/PointPos.cpp
 )

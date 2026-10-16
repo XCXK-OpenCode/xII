@@ -11,8 +11,12 @@
 namespace xII::Item {
     void General::Render(Camera::Standard& camera, Item::Renderer::Args args) const {
         auto points = _shape->getPoints(0);
+        auto item_pr = _shape->getPR();
+        auto item_pos = Screen::Point2PoSize(camera.getPoint(), camera.getRange(), {0, 0}, camera.getScreen().getSize(), item_pr.first);
+        auto item_epos = Screen::Point2PoSize(camera.getPoint(), camera.getRange(), {0, 0}, camera.getScreen().getSize(), item_pr.second);
+        auto item_size = Screen::PoSize{item_epos.x - item_pos.x, item_epos.y - item_pos.y};
         for (auto& renderer : _renderers)
-            renderer->Render(camera, points, args);
+            renderer->Render(camera, points, args, item_pos, item_size);
         for (const auto& subitem : _subitems)
             if (subitem->isInRange(camera))
                 subitem->Render(camera, args);
@@ -31,6 +35,8 @@ namespace xII::Item {
                                           Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, *ItA),
                                           Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, *ItB),
                                           camera.getColor,
-                                          camera.getWidth());
+                                          camera.getWidth(), 
+                                          {0, 0},
+                                          camera.getScreen().getSize());
     }
 } // namespace xII::Item

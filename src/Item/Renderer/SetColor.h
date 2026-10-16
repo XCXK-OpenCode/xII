@@ -16,7 +16,7 @@ namespace xII::Item::Renderer {
         void setColor(const Screen::RGBA8888::Pixel& color) { _color = color; }
         Screen::RGBA8888::Pixel getColor() const { return _color; }
 
-        void Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points, Args &args) const override 
+        void Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points, Args &args, const Screen::PoSize& item_pos, const Screen::PoSize& item_size) const override 
         { args.getColor = [this, args](const Args::DrawContext& ctx) -> Screen::Screen::Pixel { return {.A = args.getAlpha(), .R = _color.R, .G = _color.G, .B = _color.B}; }; };
     };
 } // namespace xII::Item::Renderer

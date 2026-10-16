@@ -20,6 +20,6 @@ namespace xII::Item::Renderer {
 
         virtual ~Base() = default;
 
-        virtual void Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points, Args &args) const = 0;
+        virtual void Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points, Args &args, const Screen::PoSize& item_pos, const Screen::PoSize& item_size) const = 0;
     };
 } // namespace xII::Item::Renderer

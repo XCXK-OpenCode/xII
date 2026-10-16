@@ -39,6 +39,7 @@ namespace xII::Item::Shape {
         std::shared_ptr<const Space::Point> getP3() const;
 
         Space::Range getRange() { return {_width, _height}; }
+        std::pair<std::shared_ptr<const Space::Point>, std::shared_ptr<const Space::Point>> getPR() override { return {getP1(), getP3()}; }
 
         std::vector<std::shared_ptr<Space::Point>> getPoints(const xII::Base::Quantity::Base_Value_Type PPU) override;
     };
