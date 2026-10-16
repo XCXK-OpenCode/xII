@@ -40,6 +40,8 @@
 #include "Item/Renderer/Line.h"
 #include "Item/Renderer/SetColor.h"
 #include "Item/Renderer/SetWidth.h"
+#include "Time/Point.h"
+#include "Time/OffsetPoint.h"
 
 //屏幕尺寸常量
 const int SCREEN_WIDTH = 1280;
@@ -49,22 +51,25 @@ int main() {
     std::cout << "Hello world!" << std::endl;
 
     auto root_object = std::make_shared<xII::Item::Base>();
-    auto root_point = std::make_shared<xII::Space::Point>();
-    auto camera_center = std::make_shared<xII::Space::OffsetPoint>(root_point, xII::Space::Offset(0, 0));
+    auto root_space_point = std::make_shared<xII::Space::Point>();
+    auto camera_center = std::make_shared<xII::Space::OffsetPoint>(root_space_point, xII::Space::Offset(0, 0));
+    auto root_time_point = std::make_shared<xII::Time::Point>();
+    auto time_point = std::make_shared<xII::Time::OffsetPoint>(root_time_point, xII::Time::Offset(0));
     auto camera = xII::Camera::Standard(
         xII::Item::Shape::Rectangle(camera_center, 1920, 1080),
         {SCREEN_WIDTH, SCREEN_HEIGHT},
-        root_object);
+        root_object,
+        time_point);
 
     auto st_item_color = std::make_shared<xII::Item::Renderer::SetColor>(xII::Screen::Screen::RGBA8888::Pixel{.A = 255, .R = 255, .G = 0, .B = 0});
     auto st_item_width = std::make_shared<xII::Item::Renderer::SetWidth>(5);
     auto st_item_line = std::make_shared<xII::Item::Renderer::Line>();
 
     auto st_item1 = std::make_shared<xII::Item::General>(
-        std::make_shared<xII::Item::Shape::Rectangle>(std::make_shared<xII::Space::OffsetPoint>(root_point, xII::Space::Offset(400, 200)), 600, 600),
+        std::make_shared<xII::Item::Shape::Rectangle>(std::make_shared<xII::Space::OffsetPoint>(root_space_point, xII::Space::Offset(400, 200)), 600, 600),
         std::vector<std::shared_ptr<xII::Item::Renderer::Base>>());
     auto st_item2 = std::make_shared<xII::Item::General>(
-        std::make_shared<xII::Item::Shape::Rectangle>(std::make_shared<xII::Space::OffsetPoint>(root_point, xII::Space::Offset(-100, 100)), 800, 500),
+        std::make_shared<xII::Item::Shape::Rectangle>(std::make_shared<xII::Space::OffsetPoint>(root_space_point, xII::Space::Offset(-100, 100)), 800, 500),
         std::vector<std::shared_ptr<xII::Item::Renderer::Base>>());
     st_item1->getRenderersR().push_back(st_item_color);
     st_item1->getRenderersR().push_back(st_item_width);
