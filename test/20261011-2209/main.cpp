@@ -44,6 +44,7 @@
 #include "Item/Renderer/Fill.h"
 #include "Time/Point.h"
 #include "Time/OffsetPoint.h"
+#include "Item/Renderer/SetAlpha.h"
 
 //屏幕尺寸常量
 const int SCREEN_WIDTH = 1280;
@@ -63,9 +64,10 @@ int main() {
         root_object,
         time_point);
 
-    // auto st_item_color = std::make_shared<xII::Item::Renderer::SetColor>(xII::Screen::Screen::RGBA8888::Pixel{.A = 255, .R = 255, .G = 0, .B = 0});
-    auto st_item_color = std::make_shared<xII::Item::Renderer::Rainbow1>();
-    auto st_item_width = std::make_shared<xII::Item::Renderer::SetWidth>(10);
+    auto st_item_color = std::make_shared<xII::Item::Renderer::SetColor>(xII::Screen::Screen::RGBA8888::Pixel{.A = 255, .R = 255, .G = 255, .B = 255});
+    // auto st_item_color = std::make_shared<xII::Item::Renderer::Rainbow1>();
+    auto st_item_alpha = std::make_shared<xII::Item::Renderer::SetAlpha>(0);
+    auto st_item_width = std::make_shared<xII::Item::Renderer::SetWidth>(2);
     auto st_item_line = std::make_shared<xII::Item::Renderer::Line>();
     auto st_item_fill = std::make_shared<xII::Item::Renderer::Fill>();
 
@@ -75,17 +77,16 @@ int main() {
     auto st_item2 = std::make_shared<xII::Item::General>(
         std::make_shared<xII::Item::Shape::Rectangle>(std::make_shared<xII::Space::OffsetPoint>(root_space_point, xII::Space::Offset(-100, 100)), 800, 500),
         std::vector<std::shared_ptr<xII::Item::Renderer::Base>>());
+    st_item1->getRenderersR().push_back(st_item_alpha);
     st_item1->getRenderersR().push_back(st_item_color);
     st_item1->getRenderersR().push_back(st_item_width);
-    st_item1->getRenderersR().push_back(st_item_fill);
+    st_item1->getRenderersR().push_back(st_item_line);
 
     st_item2->getRenderersR().push_back(st_item_color);
     st_item2->getRenderersR().push_back(st_item_width);
     st_item2->getRenderersR().push_back(st_item_line);
     root_object->addItem(st_item1);
     root_object->addItem(st_item2);
-
-    camera.Shoot();
 
     //初始化SDL子系统
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -140,6 +141,10 @@ int main() {
                 isDone = true;
             }
         }
+
+        camera.Shoot();
+        SDL_BlitSurface(surface, NULL, gWinSfc, NULL);
+        SDL_UpdateWindowSurface(gWindow);
     }
 
     //销毁窗口
