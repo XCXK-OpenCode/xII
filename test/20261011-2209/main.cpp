@@ -45,6 +45,8 @@
 #include "Time/Point.h"
 #include "Time/OffsetPoint.h"
 #include "Item/Renderer/SetAlpha.h"
+#include "Item/Renderer/Curves.h"
+#include "Item/Renderer/Fadein.h"
 
 //屏幕尺寸常量
 const int SCREEN_WIDTH = 1280;
@@ -64,9 +66,10 @@ int main() {
         root_object,
         time_point);
 
-    auto st_item_color = std::make_shared<xII::Item::Renderer::SetColor>(xII::Screen::Screen::RGBA8888::Pixel{.A = 255, .R = 255, .G = 255, .B = 255});
-    // auto st_item_color = std::make_shared<xII::Item::Renderer::Rainbow1>();
-    auto st_item_alpha = std::make_shared<xII::Item::Renderer::SetAlpha>(0);
+    // auto st_item_color = std::make_shared<xII::Item::Renderer::SetColor>(xII::Screen::Screen::RGBA8888::Pixel{.A = 255, .R = 255, .G = 255, .B = 255});
+    auto st_item_color = std::make_shared<xII::Item::Renderer::Rainbow1>();
+    // auto st_item_alpha = std::make_shared<xII::Item::Renderer::SetAlpha>(127);
+    auto st_item_alpha = std::make_shared<xII::Item::Renderer::Fadein<xII::Item::Renderer::Curves::Line>>(root_time_point, xII::Time::Offset(100));
     auto st_item_width = std::make_shared<xII::Item::Renderer::SetWidth>(2);
     auto st_item_line = std::make_shared<xII::Item::Renderer::Line>();
     auto st_item_fill = std::make_shared<xII::Item::Renderer::Fill>();
@@ -80,7 +83,7 @@ int main() {
     st_item1->getRenderersR().push_back(st_item_alpha);
     st_item1->getRenderersR().push_back(st_item_color);
     st_item1->getRenderersR().push_back(st_item_width);
-    st_item1->getRenderersR().push_back(st_item_line);
+    st_item1->getRenderersR().push_back(st_item_fill);
 
     st_item2->getRenderersR().push_back(st_item_color);
     st_item2->getRenderersR().push_back(st_item_width);
@@ -141,7 +144,8 @@ int main() {
                 isDone = true;
             }
         }
-
+        std::cout << "Time: " << camera.getTimePoint()->getTime() << std::endl;
+        camera.getTimePointR()->add();
         camera.Shoot();
         SDL_BlitSurface(surface, NULL, gWinSfc, NULL);
         SDL_UpdateWindowSurface(gWindow);

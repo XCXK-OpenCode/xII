@@ -40,7 +40,7 @@ xII::Screen::RGBA8888::Pixel hsv_to_rgba(double h, double s, double v, uint8_t a
 
 namespace xII::Item::Renderer {
     void Rainbow1::Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points, Args &args, const Screen::PoSize& item_pos, const Screen::PoSize& item_size) const {
-        args.getColor = [](const Args::DrawContext& ctx) -> Screen::RGBA8888::Pixel {
+        args.getColor = [args](const Args::DrawContext& ctx) -> Screen::RGBA8888::Pixel {
             // 当前像素相对 item 原点的位置
             const double lx = static_cast<double>(ctx.screen_pos.x - ctx.item_pos.x);
             const double ly = static_cast<double>(ctx.screen_pos.y - ctx.item_pos.y);
@@ -58,7 +58,7 @@ namespace xII::Item::Renderer {
             // 或 const double t = std::hypot(sx-0.5, sy-0.5) * 2.0;  // 径向
 
             const double hue = t * 360.0;            // 一个周期 360°
-            return hsv_to_rgba(hue, 1.0, 1.0, 255);
+            return hsv_to_rgba(hue, 1.0, 1.0, args.getAlpha());
         };
     }
 } // namespace xII::Item::Renderer

@@ -2,6 +2,8 @@
 // Created by qpwser in 2026-10-11
 //
 
+#pragma once
+
 #include "Base.h"
 #include "Screen/Screen.h"
 #include <cstddef>

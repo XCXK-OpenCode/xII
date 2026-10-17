@@ -21,11 +21,14 @@ namespace xII::Time {
 
         ~OffsetPointRoot() override = default;
 
-        long long getTIme() const override { return _origin->getTIme() + _offset.getTime(); }
+        long long getTime() const override { return _origin->getTime() + _offset.getTime(); }
         std::shared_ptr<Point> getRoot() override { return _origin->getRoot(); }
 
         std::shared_ptr<Point> getOrigin() const { return _origin; }
         Offset_Type getOffset() const { return _offset; }
+
+        void add() { _offset.setTime(_offset.getTime() + 1); }
+        void sub() { _offset.setTime(_offset.getTime() - 1); }
 
         bool operator==(const OffsetPointRoot& v) const { return (_origin == v._origin) && (_offset == v._offset); }
         bool operator!=(const OffsetPointRoot& v) const { return (_origin != v._origin) || (_offset != v._offset); }

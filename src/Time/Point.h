@@ -14,7 +14,7 @@ namespace xII::Time {
         Point() = default;
         virtual ~Point() = default;
 
-        virtual long long getTIme() const { return 0; }
+        virtual long long getTime() const { return 0; }
         virtual std::shared_ptr<Point> getRoot() { return shared_from_this(); }
 
     };
