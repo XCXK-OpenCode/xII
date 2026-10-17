@@ -2,6 +2,8 @@
 // Created by qpwser from XCXK on 2026-10-15
 //
 
+#pragma once
+
 #include "Base.h"
 
 namespace xII::Item::Renderer {

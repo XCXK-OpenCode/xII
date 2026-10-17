@@ -14,6 +14,7 @@ add_library(xII STATIC
     src/Item/Renderer/Rainbow.cpp
     src/Item/Renderer/Line.cpp
     src/Item/Renderer/Fill.cpp
+    src/Item/Renderer/Curves.cpp
     src/Item/Shape/Rectangle.cpp
     src/Screen/RGBA8888.cpp
     src/Screen/PointPos.cpp

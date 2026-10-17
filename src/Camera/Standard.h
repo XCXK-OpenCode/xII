@@ -12,8 +12,8 @@ namespace xII::Camera {
 
     public:
         Standard(const Standard& v) = default;
-        Standard(const Item::Shape::Rectangle& shape, const Screen::PoSize& screen_size, const std::shared_ptr<Item::Base>& object)
-            : Base(shape, screen_size, object) {}
+        Standard(const Item::Shape::Rectangle& shape, const Screen::PoSize& screen_size, const std::shared_ptr<Item::Base>& object, const std::shared_ptr<Time::OffsetPoint>& time_point)
+            : Base(shape, screen_size, object, time_point) {}
 
         ~Standard() override = default;
 
