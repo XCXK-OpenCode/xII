@@ -28,7 +28,8 @@ add_library(xII STATIC
 )
 
 add_subdirectory(examples/outline_camera/)
-add_subdirectory(examples/line_renderer)
-add_subdirectory(examples/fill_renderer)
+add_subdirectory(examples/line_renderer/)
+add_subdirectory(examples/fill_renderer/)
+add_subdirectory(examples/rainbow_renderer/)
 
 add_subdirectory(test/20261011-2209)
