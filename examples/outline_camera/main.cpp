@@ -2,7 +2,11 @@
 // Created by qpwser from XCXK on 2026-10-18
 //
 
+#include <atomic>
 #include <iostream>
+#include <thread>
+#include <chrono>
+#include <iomanip>
 
 #include <Camera/Outline.h>
 #include <Item/General.h>
@@ -16,8 +20,42 @@ using namespace xII;
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
+std::atomic<size_t> frame_count{0};
+atomic<bool> isDone(false);
+
+void fps_ptf() {
+    using namespace chrono;
+
+    auto   last_time  = steady_clock::now();  // 上一次刷新的时刻
+    size_t last_count = 0;                    // 上一次刷新时的帧数
+
+    while(!isDone.load(std::memory_order_relaxed)) {
+        this_thread::sleep_for(milliseconds(100));
+
+        auto now     = steady_clock::now();
+        auto elapsed = duration_cast<milliseconds>(now - last_time).count();
+
+        if (elapsed >= 1000) {                        // 满 1 秒才刷新
+            size_t cur = frame_count.load(std::memory_order_relaxed);
+            double fps = (cur - last_count) * 1000.0 / elapsed;
+
+            // \r 回到行首，末尾补空格清掉上一次的残留字符
+            cout << "\rFPS: " << fixed << setprecision(1)
+                      << fps
+                      << "   frames: " << cur
+                      << "        " << flush;   // flush 才能真正显示
+
+            last_count = cur;
+            last_time  = now;
+        }
+    }
+    cout << endl;
+}
+
 int main(int argc, char** argv) {
     cout << "Outline Camera Example" << endl;
+
+    thread fps_pt(fps_ptf);
 
     auto root_space_point = std::make_shared<Space::Point>();
     auto root_time_point = std::make_shared<Time::Point>();
@@ -80,7 +118,6 @@ int main(int argc, char** argv) {
     }
 
     // Main loop
-    bool isDone = false;
     while (!isDone) {
         // Handle events
         static SDL_Event ev = {};
@@ -93,9 +130,11 @@ int main(int argc, char** argv) {
         camera.Shoot();
         SDL_BlitSurface(surface, NULL, gWinSfc, NULL);
         SDL_UpdateWindowSurface(gWindow);
+        frame_count.fetch_add(1, std::memory_order_relaxed);
     }
 
     // Clean up and exit
+    fps_pt.join();
     SDL_DestroyWindow(gWindow);
     SDL_Quit();
 
