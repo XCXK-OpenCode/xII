@@ -147,7 +147,7 @@ namespace xII::Item::Renderer {
                       const Screen::PoSize& item_pos,
                       const Screen::PoSize& item_size) const {
         Screen::PoSize screen_point = {0, 0};
-        auto screen_size = camera.getScreen().getSize();
+        auto screen_size = camera.getScreenR().getSize();
         auto map_point   = camera.getPoint();
         auto map_size    = camera.getRange();
 
