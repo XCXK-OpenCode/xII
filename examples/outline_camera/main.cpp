@@ -35,8 +35,8 @@ int main(int argc, char** argv) {
     );
 
     camera.getObject()->addItem(std::make_shared<Item::General>(
-        std::make_shared<Item::Shape::Rectangle>(
-            std::make_shared<Space::OffsetPoint>(root_space_point, Space::Offset(-100, -100)),  // Shape
+        std::make_shared<Item::Shape::Rectangle>(   // Shape
+            std::make_shared<Space::OffsetPoint>(root_space_point, Space::Offset(-100, -100)), // Center
             640, 480 // Width and Height
         )
     ));
