@@ -26,29 +26,31 @@ atomic<bool> isDone(false);
 void fps_ptf() {
     using namespace chrono;
 
-    auto   last_time  = steady_clock::now();  // 上一次刷新的时刻
-    size_t last_count = 0;                    // 上一次刷新时的帧数
+    auto   last_time  = steady_clock::now(); // Last time
+    size_t last_count = 0; // Last frame count
 
     while(!isDone.load(std::memory_order_relaxed)) {
+        // check every 100ms
         this_thread::sleep_for(milliseconds(100));
 
+        // check if 1 second has passed
         auto now     = steady_clock::now();
         auto elapsed = duration_cast<milliseconds>(now - last_time).count();
 
-        if (elapsed >= 1000) {                        // 满 1 秒才刷新
+        if (elapsed >= 1000) {
             size_t cur = frame_count.load(std::memory_order_relaxed);
             double fps = (cur - last_count) * 1000.0 / elapsed;
 
-            // \r 回到行首，末尾补空格清掉上一次的残留字符
             cout << "\rFPS: " << fixed << setprecision(1)
                       << fps
                       << "   frames: " << cur
-                      << "        " << flush;   // flush 才能真正显示
+                      << "        " << flush;
 
             last_count = cur;
             last_time  = now;
         }
     }
+    // Flush output
     cout << endl;
 }
 
