@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
     }
 
     // Create window
-    SDL_Window* gWindow = SDL_CreateWindow("Outline Camera Example",
+    SDL_Window* gWindow = SDL_CreateWindow("Line Renderer Example",
                                            SCREEN_WIDTH, SCREEN_HEIGHT,
                                            0);
 
