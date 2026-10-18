@@ -130,6 +130,15 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    // The camera buffer is already composited and always opaque
+    // (clear() writes A=255, alpha blending keeps A=255).
+    // The default BLENDMODE_BLEND makes SDL blend every pixel on each blit
+    // (~13.7 ms/frame at 1280x720); BLENDMODE_NONE cuts it to ~2.8 ms.
+    if (!SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_NONE)) {
+        std::cerr << "Failed to set blend mode: " << SDL_GetError() << std::endl;
+        return -1;
+    }
+
     // Main loop
     while (!isDone) {
         // Handle events

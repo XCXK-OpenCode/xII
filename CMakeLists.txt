@@ -4,6 +4,13 @@ project(xII)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 
+# 默认使用 Release：未指定构建类型时 CMake 不加任何优化（-O0），
+# 逐像素的 Fill/Line 渲染会慢 2~3 倍。显式传入 -DCMAKE_BUILD_TYPE=Debug 仍可覆盖。
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+    message(STATUS "CMAKE_BUILD_TYPE defaulted to Release")
+endif()
+
 set(SDL_TEST OFF CACHE BOOL "" FORCE)
 set(SDL_TESTS OFF CACHE BOOL "" FORCE)
 set(SDL_SHARED ON CACHE BOOL "" FORCE)
