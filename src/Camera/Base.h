@@ -6,6 +6,7 @@
 
 #include "Item/Shape/Rectangle.h"
 #include "Screen/Screen.h"
+#include "Screen/Canvas.h"
 #include "Item/Base.h"
 #include "Space/Point.h"
 #include "Time/OffsetPoint.h"
@@ -18,6 +19,9 @@ namespace xII::Camera {
         Screen::Screen _screen;
         std::shared_ptr<Item::Base> _object;
         std::shared_ptr<Time::OffsetPoint> _time_point;
+
+        // 非空表示走 GPU 画布；为空时使用 CPU 光栅化（写 _screen）。
+        Screen::Canvas* _canvas = nullptr;
 
     public:
         Base(const Item::Shape::Rectangle& shape, const Screen::PoSize& screen_size, const std::shared_ptr<Item::Base>& object, const std::shared_ptr<Time::OffsetPoint>& time_point)
@@ -45,6 +49,13 @@ namespace xII::Camera {
 
         std::shared_ptr<const Space::Point> getPoint() { return _shape.getP2(); }
         Space::Range getRange() { return _shape.getRange(); }
+
+        // ---- 渲染后端 ----
+        // 设置画布后，Line / Fill 会把几何交给画布（GPU）；
+        // 置空则回到 CPU 光栅化路径。画布生命周期由调用方管理。
+        void setCanvas(Screen::Canvas* canvas) { _canvas = canvas; }
+        Screen::Canvas* getCanvas() const { return _canvas; }
+        [[nodiscard]] bool isGPU() const { return _canvas != nullptr; }
 
         virtual void Shoot() = 0;
     };

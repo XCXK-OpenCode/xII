@@ -94,6 +94,23 @@ namespace xII::Item::Renderer {
         auto map_point = camera.getPoint();
         auto map_size = camera.getRange();
 
+        const size_t n = points.size();
+        if (n == 0) return;
+
+        // 先统一把空间坐标映射到屏幕坐标，两种后端共用
+        std::vector<Screen::PoSize> screen_pts;
+        screen_pts.reserve(n);
+        for (const auto& point : points)
+            screen_pts.push_back(Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, point));
+
+        // ---- GPU 后端 ----
+        if (auto* canvas = camera.getCanvas()) {
+            canvas->stroke_polyline(screen_pts, true, args.getColor, args.getWidth(),
+                                    item_pos, item_size);
+            return;
+        }
+
+        // ---- CPU 后端 ----
         // 半透明绘制时，同一条折线的线段之间、以及线宽的多个偏移之间会覆盖同一像素。
         // 如果没有掩码，每覆盖一次就会再做一次 alpha 混合，颜色会越叠越亮。
         std::vector<uint8_t> coverage;
@@ -103,11 +120,9 @@ namespace xII::Item::Renderer {
             coverage_ptr = &coverage;
         }
 
-        const size_t n = points.size();
         for (size_t i = 0; i < n; i++) {
-            auto a = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[i]);
-            auto b = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[(i + 1) % n]);
-            draw_line(camera.getScreenR(), a, b, args.getColor, args.getWidth(), item_pos, item_size, coverage_ptr);
+            draw_line(camera.getScreenR(), screen_pts[i], screen_pts[(i + 1) % n],
+                      args.getColor, args.getWidth(), item_pos, item_size, coverage_ptr);
         }
     }
 } // namespace xII::Item::Renderer

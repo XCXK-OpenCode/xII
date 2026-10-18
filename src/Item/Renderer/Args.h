@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Screen/Screen.h"
+#include "Screen/DrawContext.h"
 
 #include <functional>
 
@@ -19,12 +20,8 @@ namespace xII::Item::Renderer {
         
         ~Args() = default;
 
-        struct DrawContext {
-            Screen::PoSize screen_pos;
-            Screen::PoSize screen_size;
-            Screen::PoSize item_pos;
-            Screen::PoSize item_size;
-        };      
+        // 定义在 Screen 层，避免 Screen::Canvas 反向依赖 Item 层
+        using DrawContext = Screen::DrawContext;
 
         std::function<Screen::Screen::Pixel(const DrawContext&)> getColor = [this](const DrawContext& ctx) -> Screen::Screen::Pixel { return Screen::Screen::Pixel{0, 0, 0, _alpha}; };
         

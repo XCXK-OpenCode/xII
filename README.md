@@ -20,3 +20,33 @@ examples是示例文件夹，里面有一些示例，你可以使用它进行测
 ```
 运行`line_renderer`示例你将看到一个名为`Line Renderer Example`的窗口  
 其中绘制了一个白色边框的长方形
+
+### 渲染后端（CPU / OpenGL）
+默认只编译 CPU 光栅化后端。要额外编译 OpenGL 后端，在配置时打开开关：
+
+```bash
+    cmake -S . -B cmake-build -DXII_ENABLE_OPENGL=ON
+    cmake --build cmake-build -j
+
+    cmake-build/examples/gl_renderer/example_gl_renderer        # CPU
+    cmake-build/examples/gl_renderer/example_gl_renderer --gl   # GPU
+```
+
+相关宏定义在 `src/Screen/Backend.h`：
+
+| 宏 | 含义 |
+| --- | --- |
+| `XII_ENABLE_OPENGL` | CMake 传入的开关（`ON` → 1） |
+| `XII_BACKEND_CPU` | 恒为 1，CPU 后端永远可用，同时是 GPU 的像素校验基准 |
+| `XII_BACKEND_GL` | 等于 `XII_ENABLE_OPENGL`，为 1 时才编译 `GLCanvas` |
+
+宏只决定“能不能用”，运行时用 `camera.setCanvas()` 选择：
+
+```cpp
+auto canvas = xII::Screen::GLCanvas::create(window, {W, H});  // 需要 GL 上下文
+camera.setCanvas(canvas.get());   // 走 GPU
+camera.setCanvas(nullptr);        // 回到 CPU
+```
+
+同一个场景下 GPU 与 CPU 的输出在测试中逐像素一致（`test/20261018-173742 --gl` 会打印对比结果）。
+

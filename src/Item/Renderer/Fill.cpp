@@ -162,6 +162,13 @@ namespace xII::Item::Renderer {
                                      screen_size, points[i]));
         }
 
+        // ---- GPU 后端 ----
+        if (auto* canvas = camera.getCanvas()) {
+            canvas->fill_polygon(screen_pts, args.getColor, item_pos, item_size);
+            return;
+        }
+
+        // ---- CPU 后端 ----
         draw_fill(camera.getScreenR(), screen_pts, args.getColor, item_pos, item_size);
     }
 } // namespace xII::Item::Renderer
