@@ -40,12 +40,12 @@ namespace xII::Item::Renderer {
                 return;
             }
 
-            xII::Base::Quantity::Base_Value_Type progress = static_cast<xII::Base::Quantity::Base_Value_Type>(current_time->getTime() - start_time) / static_cast<xII::Base::Quantity::Base_Value_Type>(length);
+            xII::Base::Quantity::Base_Value_Type progress = 
+            static_cast<xII::Base::Quantity::Base_Value_Type>(current_time->getTime() - start_time) / 
+            static_cast<xII::Base::Quantity::Base_Value_Type>(length);
             xII::Base::Quantity::Base_Value_Type value = func(progress);
 
             args.multiplyAlpha(static_cast<uint8_t>(value * 255));
-
-            std::cout << "Fadein: progress = " << progress << ", value = " << value << ", alpha = " << static_cast<int>(args.getAlpha()) << std::endl;
         }
     };
 } // namespace xII::Item::Renderer
