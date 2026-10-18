@@ -19,3 +19,5 @@ add_library(xII STATIC
     src/Screen/RGBA8888.cpp
     src/Screen/PointPos.cpp
 )
+
+add_subdirectory(test/20261011-2209)
