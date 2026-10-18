@@ -19,7 +19,7 @@ namespace xII::Item {
 
     public:
         General(const General&) = default;
-        General(const std::shared_ptr<Shape::Base>& shape, const std::vector<std::shared_ptr<Renderer::Base>>& renderers)
+        General(const std::shared_ptr<Shape::Base>& shape, const std::vector<std::shared_ptr<Renderer::Base>>& renderers = {})
             : _shape(shape),
               _renderers(renderers) {}
 

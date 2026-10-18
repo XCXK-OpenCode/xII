@@ -89,7 +89,6 @@ int main() {
     st_item2->getRenderersR().push_back(st_item_width);
     st_item2->getRenderersR().push_back(st_item_line);
     root_object->addItem(st_item1);
-    st_item1->addItem(st_item2);
 
     //初始化SDL子系统
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
