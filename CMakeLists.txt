@@ -27,6 +27,9 @@ add_library(xII STATIC
     src/Screen/PointPos.cpp
 )
 
+# GPU 渲染后端需要 SDL 的 render API；PUBLIC 让使用方也拿到头文件路径
+target_link_libraries(xII PUBLIC SDL3::SDL3-shared)
+
 add_subdirectory(examples/outline_camera/)
 add_subdirectory(examples/line_renderer/)
 add_subdirectory(examples/fill_renderer/)
@@ -34,3 +37,4 @@ add_subdirectory(examples/rainbow_renderer/)
 add_subdirectory(examples/fadein_renderer/)
 
 add_subdirectory(test/20261011-2209)
+add_subdirectory(test/20261018-173742)

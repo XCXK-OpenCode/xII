@@ -15,7 +15,8 @@ namespace xII::Item::Renderer {
                 const std::function<Screen::RGBA8888::Pixel(const Args::DrawContext&)>& getColor,
                 size_t width,
                 const Screen::PoSize& item_pos,
-                const Screen::PoSize& item_size)
+                const Screen::PoSize& item_size,
+                std::vector<uint8_t>* coverage)
     {
         if (width == 0) return;
 
@@ -43,6 +44,12 @@ namespace xII::Item::Renderer {
             const auto uy = static_cast<size_t>(py);
             if (ux >= W || uy >= H) return;
 
+            const size_t index = uy * W + ux;
+            if (coverage != nullptr) {
+                if ((*coverage)[index] != 0) return;
+                (*coverage)[index] = 1;
+            }
+
             const Args::DrawContext ctx{
                 Screen::PoSize{ px, py },
                 screen_size,
@@ -52,7 +59,7 @@ namespace xII::Item::Renderer {
 
             const Screen::RGBA8888::Pixel color = getColor(ctx);
 
-            auto& dst = data[uy * W + ux];
+            auto& dst = data[index];
             if (color.A == 255) {
                 dst = color;
             } else if (color.A != 0) {
@@ -86,11 +93,21 @@ namespace xII::Item::Renderer {
         auto screen_size = camera.getScreenR().getSize();
         auto map_point = camera.getPoint();
         auto map_size = camera.getRange();
+
+        // 半透明绘制时，同一条折线的线段之间、以及线宽的多个偏移之间会覆盖同一像素。
+        // 如果没有掩码，每覆盖一次就会再做一次 alpha 混合，颜色会越叠越亮。
+        std::vector<uint8_t> coverage;
+        std::vector<uint8_t>* coverage_ptr = nullptr;
+        if (args.getAlpha() < 255) {
+            coverage.assign(static_cast<size_t>(screen_size.x) * static_cast<size_t>(screen_size.y), 0);
+            coverage_ptr = &coverage;
+        }
+
         const size_t n = points.size();
         for (size_t i = 0; i < n; i++) {
             auto a = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[i]);
             auto b = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[(i + 1) % n]);
-            draw_line(camera.getScreenR(), a, b, args.getColor, args.getWidth(), item_pos, item_size);
+            draw_line(camera.getScreenR(), a, b, args.getColor, args.getWidth(), item_pos, item_size, coverage_ptr);
         }
     }
 } // namespace xII::Item::Renderer

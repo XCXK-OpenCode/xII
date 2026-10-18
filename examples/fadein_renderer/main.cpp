@@ -140,6 +140,7 @@ int main(int argc, char** argv) {
                 isDone = true;
 
         // Update camera and render to window
+        camera.getScreenR().clear();
         camera.Shoot();
         SDL_BlitSurface(surface, NULL, gWinSfc, NULL);
         SDL_UpdateWindowSurface(gWindow);

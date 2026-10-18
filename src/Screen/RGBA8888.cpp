@@ -12,7 +12,11 @@
 
 namespace xII::Screen {
     void RGBA8888::_clear() {
-        std::fill_n(_data, _size.x * _size.y, Pixel{0, 0, 0, 0});
+        // Pixel 的内存布局是 {A, R, G, B}（与 SDL_PIXELFORMAT_BGRA8888 的掩码一致）。
+        // 清屏必须是“不透明黑色”，即 A=255、R=G=B=0；
+        // 直接写 Pixel{0, 0, 0, 255} 会得到 A=0、B=255 的透明蓝色，
+        // 后续 alpha 混合就会在透明背景上做，屏幕上会被当成纯色显示。
+        std::fill_n(_data, _size.x * _size.y, Pixel{.A = 255, .R = 0, .G = 0, .B = 0});
     }
 
     void RGBA8888::_resize(const PoSize& new_size) {
@@ -56,7 +60,7 @@ namespace xII::Screen {
     }
 
     void RGBA8888::clear() {
-        clear();
+        _clear();
     }
 
     void RGBA8888::resize(const PoSize& new_size) {
@@ -88,30 +92,36 @@ namespace xII::Screen {
     }
 
     RGBA8888::Pixel RGBA8888::_blend_alpha_pixel_(const Pixel& a, const Pixel& b) {
-        auto a_a_ = a.A / 255.0f;
-        auto b_a_ = b.A / 255.0f;
-
-        float vr = a.R * a_a_ + b.R * b_a_;
-        float vg = a.G * a_a_ + b.G * b_a_;
-        float vb = a.B * a_a_ + b.B * b_a_;
-
-        Pixel pixel;
-        pixel.R = static_cast<uint8_t>(std::clamp(vr, 0.0f, 255.0f));
-        pixel.G = static_cast<uint8_t>(std::clamp(vg, 0.0f, 255.0f));
-        pixel.B = static_cast<uint8_t>(std::clamp(vb, 0.0f, 255.0f));
-        pixel.A = 255;
-        return pixel;
+        // 旧的浮点实现只做了加权相加（没有除以合成后的 alpha），
+        // 在目标带 alpha 时会得到过亮的颜色，这里统一走正确的 source-over。
+        return _blend_alpha_pixel(a, b);
     }
 
-    RGBA8888::Pixel RGBA8888::_blend_alpha_pixel(const Pixel& src, const Pixel& dest) {
-        auto sa = src.A / 255.0f;
-        auto ia = 1.0f - sa;
+    inline RGBA8888::Pixel RGBA8888::_blend_alpha_pixel(const Pixel& src, const Pixel& dest) {
+        const uint32_t sa = src.A;
+        if (sa == 0)   return dest;   // 源全透明 → 结果就是 dest
+        if (sa == 255) return src;    // 源全不透明 → 直接覆盖
 
-        uint8_t R = std::lround(src.R * sa + dest.R * ia);
-        uint8_t G = std::lround(src.G * sa + dest.G * ia);
-        uint8_t B = std::lround(src.B * sa + dest.B * ia);
-        uint8_t A = std::lround(src.A * sa + dest.A * ia);
-        return {.A = A, .R = R, .G = G, .B = B};
+        const uint32_t da     = dest.A;
+        const uint32_t inv_sa = 255u - sa;
+
+        // 标准 source-over（直通 alpha，非预乘）：
+        //   out_a = sa + da * (1 - sa)
+        //   out_c = (src_c * sa + dest_c * da * (1 - sa)) / out_a
+        const uint32_t out_a = sa + (da * inv_sa + 127u) / 255u;
+
+        const auto blend_channel = [&](uint32_t sc, uint32_t dc) -> uint8_t {
+            const uint32_t dst_weighted = (dc * da * inv_sa + 127u) / 255u;
+            const uint32_t value = (sc * sa + dst_weighted + out_a / 2u) / out_a;
+            return static_cast<uint8_t>(std::min(value, 255u));
+        };
+
+        return {
+            .A = static_cast<uint8_t>(out_a),
+            .R = blend_channel(src.R, dest.R),
+            .G = blend_channel(src.G, dest.G),
+            .B = blend_channel(src.B, dest.B),
+        };
     }
 
     void RGBA8888::_blend_alpha_(const RGBA8888& a, RGBA8888& b) {

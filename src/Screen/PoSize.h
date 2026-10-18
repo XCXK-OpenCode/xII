@@ -12,4 +12,9 @@ namespace xII::Screen {
         int64_t x, y;
     };
 
+    inline PoSize operator+(const PoSize &l, const PoSize &r) { return {l.x + r.x, l.y + r.y}; }
+
+    inline PoSize operator-(const PoSize &l, const PoSize &r) { return {l.x - r.x, l.y - r.y}; }
+
+
 } // namespace xII::Screen

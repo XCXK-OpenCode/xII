@@ -15,6 +15,8 @@ namespace xII::Item::Renderer {
 
     public:
         Args() = default;
+        Args(const Args& args) = default;
+        
         ~Args() = default;
 
         struct DrawContext {
