@@ -660,12 +660,14 @@ namespace xII::Item {
     void Text::setFontPath(std::string font_path) {
         _font_path = std::move(font_path);
         _applied_char_size = -1;
+        _invalidateMeasure();
         _loadFace();
     }
 
     void Text::setHeight(const double height) {
         _height = (height > 0.0) ? height : 1.0;
         _applied_char_size = -1; // 字号变了，重新设置
+        _invalidateMeasure();
     }
 
     void Text::setPosition(const std::shared_ptr<Space::Point>& position) {
@@ -684,6 +686,10 @@ namespace xII::Item {
     }
 
     Text::Measure Text::measure() const {
+        // isInRange() 与 Render() 每帧都要用文本块尺寸，所以缓存排版结果。
+        if (_measure_cache_valid)
+            return _measure_cache;
+
         if (_face == nullptr || !_applySize(_height))
             return {};
 
@@ -693,7 +699,42 @@ namespace xII::Item {
         options.line_width = _line_width;
 
         const TextLayout layout = buildLayout(_face, _text, options);
-        return {layout.width, layout.height};
+        _measure_cache = {layout.width, layout.height};
+        _measure_cache_valid = true;
+        return _measure_cache;
+    }
+
+    bool Text::isInRange(const Camera::Base& camera) const {
+        const Measure m = measure();
+
+        // 文本块尺寸：显式指定的宽高优先，<= 0 时用内容尺寸。
+        const double block_w = (_shape.getWidth() > 0.0f) ? static_cast<double>(_shape.getWidth()) : m.width;
+        const double block_h = (_shape.getHeight() > 0.0f) ? static_cast<double>(_shape.getHeight()) : m.height;
+
+        // 没有内容（空字符串）就没什么可画。
+        if (block_w <= 0.0 || block_h <= 0.0)
+            return false;
+
+        const auto center = _shape.getCenter();
+        const auto view = camera.getShape();
+        const auto view_center = view.getCenter();
+        if (center == nullptr || view_center == nullptr)
+            return true; // 信息不全时不做剔除，宁可多画
+
+        const double view_w = static_cast<double>(view.getWidth());
+        const double view_h = static_cast<double>(view.getHeight());
+        if (view_w <= 0.0 || view_h <= 0.0)
+            return true; // 相机没有有效视口
+
+        const double dx = std::abs(static_cast<double>(center->getX()) - static_cast<double>(view_center->getX()));
+        const double dy = std::abs(static_cast<double>(center->getY()) - static_cast<double>(view_center->getY()));
+
+        // 外扩 1 个 EM：斜体/字形的墨迹可能略超出排版盒（自动尺寸时盒高只含行距），
+        // 写字时只要块与视口有重叠就继续画，避免边缘文字提前消失。
+        const double margin = _height;
+
+        return dx <= (view_w + block_w) / 2.0 + margin &&
+               dy <= (view_h + block_h) / 2.0 + margin;
     }
 
     void Text::Render(Camera::Standard& camera, Item::Renderer::Args args) const {

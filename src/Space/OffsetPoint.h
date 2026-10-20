@@ -30,6 +30,14 @@ namespace xII::Space {
         std::shared_ptr<Point> getOrigin() const { return _origin; }
         Offset_Type getOffset() const { return _offset; }
 
+        // 点本身是“活的”引用：持有它的 Item / Camera 每帧都会重新调用 getX()/getY()，
+        // 所以修改 offset 后不需要重建对象，也不需要重新 set 给使用者。
+        void setOffset(const Offset_Type& offset) { _offset = offset; }
+        void setOffset(const Base::Quantity::Base_Value_Type& x, const Base::Quantity::Base_Value_Type& y) {
+            _offset.setX(x);
+            _offset.setY(y);
+        }
+
         bool operator==(const OffsetPointRoot& v) const { return (_origin == v._origin) && (_offset == v._offset); }
         bool operator!=(const OffsetPointRoot& v) const { return (_origin != v._origin) || (_offset != v._offset); }
     };

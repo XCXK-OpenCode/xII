@@ -592,6 +592,82 @@ int main() {
         }
     }
 
+    {
+        // ---- isInRange：视口剔除（Item::Base/General 只在 true 时调用子 Item 的 Render）----
+        constexpr double RANGE_W = 1920.0;
+        constexpr double RANGE_H = 1080.0;
+        // 视口 = [-960, 960] x [-540, 540]（相机 Rectangle 以 center 为中心）
+        constexpr double VIEW_HALF_W = RANGE_W / 2.0;
+
+        auto camera_root = std::make_shared<Space::Point>();
+        auto probe_camera = Camera::Standard(
+            Item::Shape::Rectangle(std::make_shared<Space::OffsetPoint>(camera_root, Space::Offset(0, 0)),
+                                   static_cast<xII::Base::Quantity::Base_Value_Type>(RANGE_W),
+                                   static_cast<xII::Base::Quantity::Base_Value_Type>(RANGE_H)),
+            {SCREEN_WIDTH, SCREEN_HEIGHT},
+            std::make_shared<Item::Base>(),
+            std::make_shared<Time::OffsetPoint>(std::make_shared<Time::Point>(), Time::Offset(0)));
+
+        auto at = [&](const double x, const double y, std::string content, const double h) {
+            return std::make_shared<Item::Text>(
+                std::make_shared<Space::OffsetPoint>(
+                    camera_root,
+                    Space::Offset(static_cast<xII::Base::Quantity::Base_Value_Type>(x),
+                                  static_cast<xII::Base::Quantity::Base_Value_Type>(y))),
+                std::move(content), latin_font, h, Screen::Screen::Pixel{255, 255, 255, 255});
+        };
+
+        constexpr double H = 80.0;
+
+        // 1) 完全在视口内
+        auto inside = at(0, 0, "In Range", H);
+        // 2) 完全离开视口（右侧很远）
+        auto outside = at(5000, 0, "Outside", H);
+        // 3) 块中心在视口外，但左半边还在视口内（跨边界，必须继续渲染）
+        auto straddle = at(0, 0, "Straddle Edge", H);
+        const double block_w = straddle->measure().width;
+        straddle->setPosition(std::make_shared<Space::OffsetPoint>(
+            camera_root,
+            Space::Offset(
+                static_cast<xII::Base::Quantity::Base_Value_Type>(VIEW_HALF_W + block_w / 2.0 - 10.0),
+                static_cast<xII::Base::Quantity::Base_Value_Type>(0))));
+
+        // 4) 刚离开视口（超过 1 EM 余量 + 余裕），应被剔除
+        auto just_outside = at(0, 0, "Just Outside", H);
+        const double jw = just_outside->measure().width;
+        just_outside->setPosition(std::make_shared<Space::OffsetPoint>(
+            camera_root,
+            Space::Offset(
+                static_cast<xII::Base::Quantity::Base_Value_Type>(VIEW_HALF_W + jw / 2.0 + H + 50.0),
+                static_cast<xII::Base::Quantity::Base_Value_Type>(0))));
+
+        // 5) 空文本：没有可画的东西
+        auto empty = at(0, 0, "", H);
+
+        const bool in_1 = inside->isInRange(probe_camera);
+        const bool in_2 = outside->isInRange(probe_camera);
+        const bool in_3 = straddle->isInRange(probe_camera);
+        const bool in_4 = just_outside->isInRange(probe_camera);
+        const bool in_5 = empty->isInRange(probe_camera);
+
+        // 端到端：被剔除的 Item 放进相机后应为 0 墨迹；跨边界的应 > 0。
+        const BBox box_outside = nonBlackBBox(renderFrame(outside, RANGE_W, RANGE_H, false),
+                                              0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        const BBox box_straddle = nonBlackBBox(renderFrame(straddle, RANGE_W, RANGE_H, false),
+                                               0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+        const bool ok = in_1 && !in_2 && in_3 && !in_4 && !in_5 &&
+                        box_outside.count == 0 && box_straddle.count > 0;
+        report("isInRange", ok,
+               "inside=" + std::to_string(in_1 ? 1 : 0) +
+                   " outside=" + std::to_string(in_2 ? 1 : 0) +
+                   " straddle=" + std::to_string(in_3 ? 1 : 0) +
+                   " just_outside=" + std::to_string(in_4 ? 1 : 0) +
+                   " empty=" + std::to_string(in_5 ? 1 : 0) +
+                   " ink(outside)=" + std::to_string(box_outside.count) +
+                   " ink(straddle)=" + std::to_string(box_straddle.count));
+    }
+
     std::cout << ((metrics_ok && features_ok) ? "ALL CHECKS PASS" : "SOME CHECKS FAILED") << std::endl;
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {

@@ -1,5 +1,6 @@
 // 
 // Created by qpwser from XCXK on 2026-10-20
+// Powered by DeepSeek V4.1 Flash
 //
 
 #include <iostream>
@@ -97,22 +98,21 @@ int main() {
     auto root_space_point = std::make_shared<Space::Point>();
     auto root_time_point = std::make_shared<Time::Point>();
 
-    // 视口中心（场景坐标）：缩放围绕它进行，拖动平移时移动它。
-    // 每次变化都重建一个 OffsetPoint，因为它是不变的点对象。
+    // 视口中心（场景坐标）：缩放围绕它，拖动平移时修改它的 offset。
+    // Point 是“活的”：Camera 每帧重新读 getX()/getY()，所以平移只需 setOffset，
+    // 不用重建对象，也不用再 setShape（只有缩放改宽高时才需要）。
     double pan_x = 0.0;
     double pan_y = 0.0;
     double camera_width = CAMERA_BASE_WIDTH;
 
-    auto make_center = [&]() {
-        return std::make_shared<Space::OffsetPoint>(
-            root_space_point,
-            Space::Offset(static_cast<xII::Base::Quantity::Base_Value_Type>(pan_x),
-                          static_cast<xII::Base::Quantity::Base_Value_Type>(pan_y)));
-    };
+    auto camera_center = std::make_shared<Space::OffsetPoint>(
+        root_space_point,
+        Space::Offset(static_cast<xII::Base::Quantity::Base_Value_Type>(pan_x),
+                      static_cast<xII::Base::Quantity::Base_Value_Type>(pan_y)));
 
     Camera::Standard camera(
         Item::Shape::Rectangle(
-            make_center(),
+            camera_center,
             static_cast<xII::Base::Quantity::Base_Value_Type>(camera_width),
             static_cast<xII::Base::Quantity::Base_Value_Type>(camera_width / CAMERA_ASPECT)),
         {SCREEN_WIDTH, SCREEN_HEIGHT},
@@ -158,15 +158,10 @@ int main() {
 
     // ---- 摄像机视口 ----
     // 视口 = 场景中的一个 16:9 矩形：
-    //   center = (pan_x, pan_y)，width = camera_width，height = width / (16/9)
-    // 改 width 就是缩放（围绕 center），改 pan 就是平移。
-    // log == true 时额外在终端打印一行（拖动时每帧都打会刷屏，所以不打印）。
-    auto apply_viewport = [&](const bool log) {
-        camera.setShape(Item::Shape::Rectangle(
-            make_center(),
-            static_cast<xII::Base::Quantity::Base_Value_Type>(camera_width),
-            static_cast<xII::Base::Quantity::Base_Value_Type>(camera_width / CAMERA_ASPECT)));
-
+    //   center = camera_center（活的点），width = camera_width，height = width / (16/9)
+    // 缩放要改 width/height（Rectangle 里是值拷贝）→ setShape；
+    // 平移只改 camera_center 的 offset，Camera 每帧自己读，不需要 setShape。
+    auto update_status = [&](const bool log) {
         const double zoom = CAMERA_BASE_WIDTH / camera_width;
 
         std::ostringstream info;
@@ -181,6 +176,14 @@ int main() {
             std::cout << info.str() << std::endl;
     };
 
+    // 把当前 camera_width 写回相机的 Rectangle（center 不用重建）。
+    auto apply_zoom_shape = [&]() {
+        camera.setShape(Item::Shape::Rectangle(
+            camera_center,
+            static_cast<xII::Base::Quantity::Base_Value_Type>(camera_width),
+            static_cast<xII::Base::Quantity::Base_Value_Type>(camera_width / CAMERA_ASPECT)));
+    };
+
     // factor > 1 放大（视口变窄），factor < 1 缩小。
     auto apply_zoom = [&](const double factor) {
         const double next = std::clamp(camera_width / factor, CAMERA_MIN_WIDTH, CAMERA_MAX_WIDTH);
@@ -188,7 +191,8 @@ int main() {
             return; // 已到上下限
 
         camera_width = next;
-        apply_viewport(true);
+        apply_zoom_shape();
+        update_status(true);
     };
 
     // 屏幕像素 -> 场景单位的缩放（与相机内部一致：screen_h / range_h）。
@@ -197,6 +201,7 @@ int main() {
     };
 
     // 拖动平移：画面跟着鼠标走，所以相机中心朝鼠标移动的反方向移动。
+    // 只改 offset，下一帧 Camera 自己会读到新坐标。
     auto apply_pan_pixels = [&](const double dx_px, const double dy_px) {
         const double scale = view_scale();
         if (scale <= 0.0)
@@ -204,7 +209,12 @@ int main() {
 
         pan_x = std::clamp(pan_x - dx_px / scale, -CAMERA_PAN_LIMIT, CAMERA_PAN_LIMIT);
         pan_y = std::clamp(pan_y - dy_px / scale, -CAMERA_PAN_LIMIT, CAMERA_PAN_LIMIT);
-        apply_viewport(false);
+        camera_center->setOffset(
+            static_cast<xII::Base::Quantity::Base_Value_Type>(pan_x),
+            static_cast<xII::Base::Quantity::Base_Value_Type>(pan_y));
+
+        // 拖动时每帧都改窗口标题太浪费，这里只更新标题不打印。
+        update_status(false);
     };
 
     // 复位：倍率与中心都回到初始值。
@@ -212,7 +222,10 @@ int main() {
         camera_width = CAMERA_BASE_WIDTH;
         pan_x = 0.0;
         pan_y = 0.0;
-        apply_viewport(true);
+        camera_center->setOffset(static_cast<xII::Base::Quantity::Base_Value_Type>(0.0),
+                                 static_cast<xII::Base::Quantity::Base_Value_Type>(0.0));
+        apply_zoom_shape();
+        update_status(true);
     };
 
     std::cout << "Ctrl + / - : zoom camera (base 16:9, viewport width "
@@ -221,7 +234,8 @@ int main() {
               << "Ctrl + wheel: zoom camera\n"
               << "drag (LMB/RMB): pan camera" << std::endl;
 
-    apply_viewport(true);
+    apply_zoom_shape();
+    update_status(true);
 
     // 获取表面
     auto gWinSfc = SDL_GetWindowSurface(gWindow);

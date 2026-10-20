@@ -66,6 +66,12 @@ namespace xII::Item {
         std::string _error;
         mutable int64_t _applied_char_size = -1; // 已应用的 26.6 字号，避免每帧重复设置
 
+        // measure() 的缓存：isInRange() 和 Render() 每帧都会用到文本块尺寸，
+        // 排版（逐字 FT_Load_Glyph）不应每帧做两遍。
+        mutable Measure _measure_cache{};
+        mutable bool _measure_cache_valid = false;
+        void _invalidateMeasure() const { _measure_cache_valid = false; }
+
         void _loadFace();
         [[nodiscard]] bool _applySize(double em) const;
         void _renderStandard(Camera::Standard& camera, Item::Renderer::Args& args, double ratio) const;
@@ -99,7 +105,10 @@ namespace xII::Item {
         [[nodiscard]] const std::string& getError() const { return _error; }
 
         [[nodiscard]] const std::string& getText() const { return _text; }
-        void setText(std::string text) { _text = std::move(text); }
+        void setText(std::string text) {
+            _text = std::move(text);
+            _invalidateMeasure();
+        }
 
         [[nodiscard]] const std::string& getFontPath() const { return _font_path; }
         void setFontPath(std::string font_path);
@@ -116,15 +125,24 @@ namespace xII::Item {
         void setColor(const Screen::Screen::Pixel& color) { _color = color; }
 
         [[nodiscard]] Align getAlign() const { return _align; }
-        void setAlign(Align align) { _align = align; }
+        void setAlign(Align align) {
+            _align = align;
+            _invalidateMeasure();
+        }
 
         // 行间距（场景单位）：字体自然行高之外额外增加的间距，可为负。
         [[nodiscard]] double getLineSpacing() const { return _line_spacing; }
-        void setLineSpacing(double line_spacing) { _line_spacing = line_spacing; }
+        void setLineSpacing(double line_spacing) {
+            _line_spacing = line_spacing;
+            _invalidateMeasure();
+        }
 
         // 行宽（场景单位）：每行最大宽度，<= 0 表示不自动换行。
         [[nodiscard]] double getLineWidth() const { return _line_width; }
-        void setLineWidth(double line_width) { _line_width = (line_width > 0.0) ? line_width : 0.0; }
+        void setLineWidth(double line_width) {
+            _line_width = (line_width > 0.0) ? line_width : 0.0;
+            _invalidateMeasure();
+        }
 
         // 文本块矩形（场景单位）：center=位置锚点，width/height=总宽/总高。
         // 直接修改返回值的拷贝不会影响 Text，请用 setShape。
@@ -138,5 +156,12 @@ namespace xII::Item {
 
         void Render(Camera::Standard& camera, Item::Renderer::Args args) const override;
         void Render(Camera::Outline& camera) const override;
+
+        // 文本块（_shape 的 center/width/height）与相机视口（Camera 的 Rectangle）
+        // 的轴对齐包围盒是否相交。false 时父级（Item::Base / General）会直接跳过
+        // 本 Item 的 Render，不会产生任何像素。
+        // 只做“整块完全离开视口”的剔除：跨在边界上的块返回 true（继续画，
+        // 具体可见部分由 Rectangle 裁剪负责）。
+        [[nodiscard]] bool isInRange(const Camera::Base& camera) const override;
     };
 } // namespace xII::Item
