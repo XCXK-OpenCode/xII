@@ -88,13 +88,13 @@ namespace xII::Item {
         auto dest_screen = camera.getScreen();
         const auto screen_size = dest_screen->getSize();
 
-        const auto src_size = _screen.getSize();
+        const auto src_size = _screen->getSize();
         const ScreenRect rect = getScreenRect(camera);
 
         // 源图或目标矩形无效时什么都不画（空图不是错误）。
         if (rect.valid && src_size.x > 0 && src_size.y > 0 &&
             screen_size.x > 0 && screen_size.y > 0) {
-            const auto* src_data = _screen.getData();
+            const auto* src_data = _screen->getData();
             auto* dest_data = dest_screen->getData();
 
             // 与屏幕求交：只遍历真正可见的像素。

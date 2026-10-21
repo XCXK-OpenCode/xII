@@ -14,25 +14,37 @@
 namespace xII::Item {
     class Image : public Base {
     private:
-        Screen::Screen _screen;
+        std::shared_ptr<Screen::Screen> _screen;
         Shape::Rectangle _shape;
 
     public:
         Image(const Image&) = default;
         Image(Image&&) = default;
 
-        Image(Screen::Screen screen, const Shape::Rectangle& shape)
-            : _screen(std::move(screen)),
+        Image(const std::shared_ptr<Screen::Screen> &screen, const Shape::Rectangle& shape)
+            : _screen(screen),
+              _shape(shape) {}
+
+        // copy screen 
+        Image(const Screen::Screen &screen, const Shape::Rectangle& shape)
+        :   _screen(std::make_shared<Screen::Screen>(screen)),
+            _shape(shape) {}
+        
+        // move screen
+        Image(Screen::Screen &&screen, const Shape::Rectangle& shape)
+            : _screen(std::make_shared<Screen::Screen>(std::move(screen))),
+              _shape(shape) {}
+        
+        Image(const Screen::PoSize &size, const Shape::Rectangle& shape) 
+            : _screen(std::make_shared<Screen::Screen>(size)),
               _shape(shape) {}
 
         ~Image() override = default;
 
-        Screen::Screen getScreen() const { return _screen; }
-        Screen::Screen& getScreenRef() { return _screen; }
-        const Screen::Screen& getScreenRef() const { return _screen; }
+        std::shared_ptr<Screen::Screen> getScreen() const { return _screen; }
 
         // 深拷贝源图：RGBA8888::operator= 现在会先 resize 再整体拷贝。
-        void setScreen(const Screen::Screen& screen) { _screen = screen; }
+        void setScreen(const std::shared_ptr<Screen::Screen>& screen) { *_screen = *screen; }
 
         Shape::Rectangle getShape() const { return _shape; }
         Shape::Rectangle& getShapeRef() { return _shape; }

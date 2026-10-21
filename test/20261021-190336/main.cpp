@@ -96,11 +96,11 @@ namespace {
     }
 
     // 每个像素都不同的“坐标编码图”，用于精确校验采样下标。
-    Screen::Screen makeCoordinateSource(const int w, const int h, const uint8_t alpha = 255) {
-        Screen::Screen img({w, h});
+    std::shared_ptr<Screen::Screen> makeCoordinateSource(const int w, const int h, const uint8_t alpha = 255) {
+        auto img = std::make_shared<Screen::Screen>(Screen::PoSize{w, h});
         for (int y = 0; y < h; ++y)
             for (int x = 0; x < w; ++x)
-                img.at({x, y}) = {alpha,
+                img->at({x, y}) = {alpha,
                                   static_cast<uint8_t>(10 + x * 20),
                                   static_cast<uint8_t>(10 + y * 20),
                                   static_cast<uint8_t>(100 + x * 5 + y * 3)};
@@ -197,7 +197,7 @@ int main() {
         size_t mismatch = 0;
         for (int y = 0; y < 8; ++y)
             for (int x = 0; x < 8; ++x)
-                if (!samePixel(out->at({left + x, top + y}), src.at({x, y})))
+                if (!samePixel(out->at({left + x, top + y}), src->at({x, y})))
                     ++mismatch;
 
         const bool ok = rect.valid && std::abs(rect.width() - 8.0) < 0.01 &&
@@ -230,7 +230,7 @@ int main() {
             for (int x = 0; x < 16; ++x) {
                 int64_t sx = 0, sy = 0;
                 map.sample(left + x, top + y, sx, sy);
-                if (!samePixel(out->at({left + x, top + y}), src.at({sx, sy})))
+                if (!samePixel(out->at({left + x, top + y}), src->at({sx, sy})))
                     ++mismatch;
             }
         }
@@ -278,7 +278,7 @@ int main() {
             for (int x = 0; x < 32; ++x) {
                 int64_t sx = 0, sy = 0;
                 map.sample(left + x, top + y, sx, sy);
-                if (!samePixel(out->at({left + x, top + y}), src.at({sx, sy})))
+                if (!samePixel(out->at({left + x, top + y}), src->at({sx, sy})))
                     ++mismatch;
             }
         }
@@ -324,7 +324,7 @@ int main() {
             for (int x = 0; x < 4; ++x) {
                 const int64_t sx = x * 2 + 1;
                 const int64_t sy = y * 2 + 1;
-                if (!samePixel(out->at({left + x, top + y}), src.at({sx, sy})))
+                if (!samePixel(out->at({left + x, top + y}), src->at({sx, sy})))
                     ++mismatch;
             }
 
@@ -356,7 +356,7 @@ int main() {
         int worst = 0;
         for (int y = 0; y < 4; ++y)
             for (int x = 0; x < 4; ++x) {
-                const auto s = src.at({x, y});
+                const auto s = src->at({x, y});
                 const auto d = scene.standard.getScreen()->at({left + x, top + y});
                 const auto expect = [](uint8_t c) {
                     return static_cast<int>(std::lround(static_cast<double>(c) * 128.0 / 255.0));
@@ -397,7 +397,7 @@ int main() {
         int worst = 0;
         for (int y = 0; y < 4; ++y)
             for (int x = 0; x < 4; ++x) {
-                const auto s = src.at({x, y});
+                const auto s = src->at({x, y});
                 const auto d = scene.standard.getScreen()->at({left + x, top + y});
                 const auto expect = [](uint8_t c) {
                     return static_cast<int>(std::lround(static_cast<double>(c) * 128.0 / 255.0));
@@ -492,44 +492,71 @@ int main() {
 
     // ---------------- 9) setScreen 深拷贝 ----------------
     {
+        // 注意构造函数语义：`Image(const shared_ptr<Screen>&)` 共享缓冲（不拷贝），
+        // `Image(const Screen&)` 才拷贝。这里要验证“深拷贝”，所以用值拷贝构造。
         auto src = makeCoordinateSource(8, 8);
         auto image = std::make_shared<Item::Image>(
-            src, Item::Shape::Rectangle(scene.at(0, 0), static_cast<Val>(8 * PX), static_cast<Val>(8 * PX)));
+            *src, Item::Shape::Rectangle(scene.at(0, 0), static_cast<Val>(8 * PX), static_cast<Val>(8 * PX)));
 
-        const auto before = image->getScreenRef().at({0, 0});
-        src.at({0, 0}) = Screen::Screen::Pixel{255, 1, 2, 3}; // 改调用方的缓冲
-        const auto after_external = image->getScreenRef().at({0, 0});
+        const auto before = image->getScreen()->at({0, 0});
+        const bool owns_buffer = image->getScreen().get() != src.get();
+        src->at({0, 0}) = Screen::Screen::Pixel{255, 1, 2, 3}; // 改调用方的缓冲
+        const auto after_external = image->getScreen()->at({0, 0});
 
         auto replacement = makeCoordinateSource(8, 8);
-        replacement.at({0, 0}) = Screen::Screen::Pixel{255, 7, 8, 9};
+        replacement->at({0, 0}) = Screen::Screen::Pixel{255, 7, 8, 9};
         image->setScreen(replacement);
-        const auto after_set = image->getScreenRef().at({0, 0});
+        const auto after_set = image->getScreen()->at({0, 0});
 
-        const bool ok = samePixel(before, after_external) &&
-                        after_set.R == 7 && after_set.G == 8 && after_set.B == 9;
+        // setScreen 是 operator= 深拷贝：之后改 replacement 不应再影响 image。
+        replacement->at({0, 0}) = Screen::Screen::Pixel{255, 99, 98, 97};
+        const auto after_replacement_edit = image->getScreen()->at({0, 0});
+
+        const bool ok = owns_buffer && samePixel(before, after_external) &&
+                        after_set.R == 7 && after_set.G == 8 && after_set.B == 9 &&
+                        samePixel(after_set, after_replacement_edit);
         report("setScreen deep copy", ok,
-               "external edit isolated=" + std::to_string(samePixel(before, after_external) ? 1 : 0) +
+               "owns buffer=" + std::to_string(owns_buffer ? 1 : 0) +
+                   ", external edit isolated=" + std::to_string(samePixel(before, after_external) ? 1 : 0) +
                    ", after setScreen rgb=" + std::to_string(after_set.R) + "," +
-                   std::to_string(after_set.G) + "," + std::to_string(after_set.B));
+                   std::to_string(after_set.G) + "," + std::to_string(after_set.B) +
+                   ", later edit isolated=" + std::to_string(samePixel(after_set, after_replacement_edit) ? 1 : 0));
+    }
+
+    // ---------------- 9a) shared_ptr 构造是共享而非拷贝 ----------------
+    {
+        auto shared = makeCoordinateSource(8, 8);
+        auto image = std::make_shared<Item::Image>(
+            shared, Item::Shape::Rectangle(scene.at(0, 0), static_cast<Val>(8 * PX), static_cast<Val>(8 * PX)));
+
+        const auto before = image->getScreen()->at({0, 0});
+        shared->at({0, 0}) = Screen::Screen::Pixel{255, 21, 22, 23};
+        const auto after = image->getScreen()->at({0, 0});
+
+        const bool ok = image->getScreen().get() == shared.get() &&
+                        !samePixel(before, after) && after.R == 21 && after.G == 22 && after.B == 23;
+        report("shared_ptr ctor shares buffer", ok,
+               "same buffer=" + std::to_string(image->getScreen().get() == shared.get() ? 1 : 0) +
+                   ", edit visible=" + std::to_string(!samePixel(before, after) ? 1 : 0));
     }
 
     // ---------------- 9b) RGBA8888::operator= 的语义 ----------------
     {
         // operator= 必须是完整深拷贝：先 resize（改变 _size 并换缓冲）再整体拷贝。
         // 这样默认构造/尺寸不同的目标都能正确接收，自赋值也安全。
-        Screen::Screen big = makeCoordinateSource(8, 8);
-        big.at({7, 7}) = Screen::Screen::Pixel{255, 111, 222, 233};
+        auto big = makeCoordinateSource(8, 8);
+        big->at({7, 7}) = Screen::Screen::Pixel{255, 111, 222, 233};
 
         Screen::Screen dest;                    // 默认构造：_data 为空
-        dest = big;                             // 必须 resize
+        dest = *big;                             // 必须 resize
         const bool resize_ok = dest.getSize().x == 8 && dest.getSize().y == 8 &&
-                               samePixel(dest.at({7, 7}), big.at({7, 7}));
+                               samePixel(dest.at({7, 7}), big->at({7, 7}));
 
-        Screen::Screen self = makeCoordinateSource(4, 4);
-        self.at({0, 0}) = Screen::Screen::Pixel{255, 44, 55, 66};
-        const auto self_before = self.at({0, 0});
+        auto self = makeCoordinateSource(4, 4);
+        self->at({0, 0}) = Screen::Screen::Pixel{255, 44, 55, 66};
+        const auto self_before = self->at({0, 0});
         self = self;                            // 自赋值不能把自己清成垃圾
-        const bool self_ok = samePixel(self.at({0, 0}), self_before);
+        const bool self_ok = samePixel(self->at({0, 0}), self_before);
 
         report("operator= deep copy", resize_ok && self_ok,
                "default-construct assign -> " + std::to_string(dest.getSize().x) + "x" +

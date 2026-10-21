@@ -72,13 +72,22 @@ namespace xII::Screen {
         [[nodiscard]] Pixel* getData() { return _data; }
         [[nodiscard]] const Pixel* getData() const { return _data; }
 
-        void operator=(const RGBA8888& s) {
-            // 自赋值必须先排除：_resize 会释放旧缓冲并分配未初始化的新缓冲，
-            // 之后再 copy 就是“从垃圾拷到自身”。
+        RGBA8888& operator=(const RGBA8888& s) {
             if (this == &s)
-                return;
+                return *this;
+
             _resize(s._size);
             _copy(s, *this);
+
+            return *this;
+        }
+
+        // 把 src 整块深拷贝进 *this。尺寸不同时会先 resize。
+        // 这样既能写 `*dest << *src`，也是 Screen.h 里
+        // `image.getScreen() << camera.getScreen()` 的落地点。
+        RGBA8888& operator<<(const RGBA8888& src) {
+            *this = src;
+            return *this;
         }
     };
 } // namespace xII::Screen

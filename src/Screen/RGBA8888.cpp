@@ -20,6 +20,11 @@ namespace xII::Screen {
     }
 
     void RGBA8888::_resize(const PoSize& new_size) {
+        // 尺寸不变时保留原缓冲：operator= / operator<< 在逐帧拷贝（画中画）时
+        // 尺寸几乎总是相同的，否则每帧都要 allocate + free 一次。
+        if (_data != nullptr && new_size.x == _size.x && new_size.y == _size.y)
+            return;
+
         auto old_data = _data;
         _data = new Pixel[new_size.x * new_size.y];
         delete[] old_data;

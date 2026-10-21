@@ -334,8 +334,8 @@ int main() {
         camera.Shoot();
         const auto before = camera.getScreen()->at(PoSize{SCREEN_W / 2, SCREEN_H / 2});
 
-        RGBA8888 second(PoSize{1, 1});
-        second.fill(RGBA8888::Pixel{255, 200, 100, 50});
+        auto second = std::make_shared<RGBA8888>(PoSize{1, 1});
+        second->fill(RGBA8888::Pixel{255, 200, 100, 50});
         image->setScreen(second); // operator= : resize + 深拷贝
 
         camera.getScreen()->clear();
@@ -344,10 +344,10 @@ int main() {
 
         const bool ok = before.R == 10 && before.G == 20 && before.B == 30 &&
                         after.R == 200 && after.G == 100 && after.B == 50 &&
-                        image->getScreenRef().getSize().x == 1;
+                        image->getScreen()->getSize().x == 1;
         report("Image::setScreen uses operator=", ok,
                "before=" + pxText(before) + " after=" + pxText(after) +
-                   " src size=" + sizeText(image->getScreenRef()));
+                   " src size=" + sizeText(*image->getScreen()));
     }
 
     // ---------------------------------------------------------------- 10
