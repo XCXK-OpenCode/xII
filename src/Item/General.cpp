@@ -97,5 +97,8 @@ namespace xII::Item {
                                           camera.getWidth(), 
                                           {0, 0},
                                           camera.getScreenR().getSize());
+        for (const auto& subitem : _subitems)
+            if (subitem->isInRange(camera))
+                subitem->Render(camera);                             
     }
 } // namespace xII::Item
