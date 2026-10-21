@@ -28,7 +28,12 @@ namespace xII::Space {
         std::shared_ptr<Point> getRoot() override { return _origin->getRoot(); }
 
         std::shared_ptr<Point> getOrigin() const { return _origin; }
+        void setOrigin(const std::shared_ptr<Point>& origin) { _origin = origin; }
+
         Offset_Type getOffset() const { return _offset; }
+        Offset_Type &getOffsetRef() { return _offset; }
+        const Offset_Type &getOffsetRef() const { return _offset; }
+        void setOffset(const Offset_Type& offset) { _offset = offset; }
 
         bool operator==(const OffsetPointRoot& v) const { return (_origin == v._origin) && (_offset == v._offset); }
         bool operator!=(const OffsetPointRoot& v) const { return (_origin != v._origin) || (_offset != v._offset); }
