@@ -27,7 +27,7 @@ namespace xII::Item::Shape {
         return std::make_shared<Space::OffsetPoint>(_center, Space::Offset(_width / 2 * static_cast<xII::Base::Quantity::Base_Value_Type>(AxisOrientation::Horizontal),
                                                                            _height / -2 * static_cast<xII::Base::Quantity::Base_Value_Type>(AxisOrientation::Vertical)));
     }
-    std::vector<std::shared_ptr<Space::Point>> Rectangle::getPoints(const xII::Base::Quantity::Base_Value_Type PPU) {
+    std::vector<std::shared_ptr<Space::Point>> Rectangle::getPoints(const xII::Base::Quantity::Base_Value_Type PPU) const {
         auto data = new Space::OffsetPoint[]{
 
             Space::OffsetPoint(_center, Space::Offset(_width / 2 * static_cast<xII::Base::Quantity::Base_Value_Type>(AxisOrientation::Horizontal),

@@ -19,8 +19,8 @@ namespace xII::Item::Shape {
         Base() = default;
         virtual ~Base() = default;
 
-        virtual std::vector<std::shared_ptr<Space::Point>> getPoints(const xII::Base::Quantity::Base_Value_Type PPU) = 0;
+        virtual std::vector<std::shared_ptr<Space::Point>> getPoints(const xII::Base::Quantity::Base_Value_Type PPU) const = 0;
 
-        virtual std::pair<std::shared_ptr<const Space::Point>, std::shared_ptr<const Space::Point>> getPR() = 0;
+        virtual std::pair<std::shared_ptr<const Space::Point>, std::shared_ptr<const Space::Point>> getPR() const = 0;
     };
 }

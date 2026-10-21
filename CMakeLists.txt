@@ -25,6 +25,7 @@ add_library(xII STATIC
     src/Camera/Standard.cpp
     src/Item/Base.cpp
     src/Item/General.cpp
+    src/Item/Image.cpp
     src/Item/Renderer/Rainbow.cpp
     src/Item/Renderer/Line.cpp
     src/Item/Renderer/Fill.cpp
@@ -45,3 +46,4 @@ add_subdirectory(examples/fadein_renderer/)
 
 add_subdirectory(test/20261011-2209)
 add_subdirectory(test/20261018-173742)
+add_subdirectory(test/20261021-190336)

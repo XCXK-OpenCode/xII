@@ -3,6 +3,7 @@
 //
 
 #pragma once
+
 #include "PoSize.h"
 #include <cstdint>
 
@@ -14,8 +15,10 @@ namespace xII::Screen {
         };
 
     private:
-        Pixel* _data;
-        PoSize _size;
+        // 必须初始化：_resize() 会 delete[] 旧缓冲，默认构造时若是野指针就会
+        // 触发 "free(): invalid pointer"（operator= 现在内部会走 _resize）。
+        Pixel* _data = nullptr;
+        PoSize _size{0, 0};
 
         void _clear();
         void _resize(const PoSize& new_size);
@@ -51,11 +54,14 @@ namespace xII::Screen {
         RGBA8888(const RGBA8888& s)
             : _data(new Pixel[s._size.x * s._size.y]),
               _size(s._size) { copy(s, *this); }
+        RGBA8888(RGBA8888 &&s) noexcept
+            : _data(s._data),
+              _size(s._size) { s._data = nullptr; s._size = {0, 0}; }
         explicit RGBA8888(const PoSize& size)
             : _data(new Pixel[size.x * size.y]),
               _size(size) {}
 
-        ~RGBA8888() = default;
+        ~RGBA8888() { delete[] _data; }
 
         [[nodiscard]] Pixel& at(const PoSize& pos) { return _data[pos.y * _size.x + pos.x]; }
         [[nodiscard]] const Pixel& at(const PoSize& pos) const { return _data[pos.y * _size.x + pos.x]; }
@@ -65,5 +71,14 @@ namespace xII::Screen {
 
         [[nodiscard]] Pixel* getData() { return _data; }
         [[nodiscard]] const Pixel* getData() const { return _data; }
+
+        void operator=(const RGBA8888& s) {
+            // 自赋值必须先排除：_resize 会释放旧缓冲并分配未初始化的新缓冲，
+            // 之后再 copy 就是“从垃圾拷到自身”。
+            if (this == &s)
+                return;
+            _resize(s._size);
+            _copy(s, *this);
+        }
     };
 } // namespace xII::Screen
