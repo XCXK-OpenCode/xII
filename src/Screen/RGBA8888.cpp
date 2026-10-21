@@ -52,11 +52,19 @@ namespace xII::Screen {
     }
 
     void RGBA8888::_copy(const RGBA8888& src_screen, RGBA8888& dest_screen, const PoSize& src_pos, const PoSize& dest_pos, const PoSize& size) {
-        const auto copy_w = std::min({size.x, src_screen._size.x - src_pos.x, dest_screen._size.x - dest_pos.x});
-        const auto copy_h = std::min({size.y, src_screen._size.y - src_pos.y, dest_screen._size.y - dest_pos.y});
+        // 位置越界时裁到 0（原先直接相减，越界会得到巨大值）。
+        const int64_t copy_w = std::max<int64_t>(
+            0, std::min({size.x, src_screen._size.x - src_pos.x, dest_screen._size.x - dest_pos.x}));
+        const int64_t copy_h = std::max<int64_t>(
+            0, std::min({size.y, src_screen._size.y - src_pos.y, dest_screen._size.y - dest_pos.y}));
 
-        for (size_t y = 0; y < copy_h; y++)
-            std::copy_n(src_screen._data + src_screen._size.x * (src_pos.y + y), copy_w, dest_screen._data + src_screen._size.y * (dest_pos.y + y));
+        for (int64_t y = 0; y < copy_h; y++) {
+            // 行宽必须用 _size.x（原先误用 _size.y，非正方形时整块错位），
+            // 并且要加上 x 偏移（原先漏了，拷贝区总是贴在最左边）。
+            const Pixel* src_row = src_screen._data + src_screen._size.x * (src_pos.y + y) + src_pos.x;
+            Pixel* dest_row = dest_screen._data + dest_screen._size.x * (dest_pos.y + y) + dest_pos.x;
+            std::copy_n(src_row, static_cast<size_t>(copy_w), dest_row);
+        }
     }
 
     void RGBA8888::clear() {
