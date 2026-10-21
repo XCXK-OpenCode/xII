@@ -330,17 +330,17 @@ int main() {
                 static_cast<Val>(320), static_cast<Val>(180)));
 
         camera.getObject()->addItem(image);
-        camera.getScreenR().clear();
+        camera.getScreen()->clear();
         camera.Shoot();
-        const auto before = camera.getScreenR().at(PoSize{SCREEN_W / 2, SCREEN_H / 2});
+        const auto before = camera.getScreen()->at(PoSize{SCREEN_W / 2, SCREEN_H / 2});
 
         RGBA8888 second(PoSize{1, 1});
         second.fill(RGBA8888::Pixel{255, 200, 100, 50});
         image->setScreen(second); // operator= : resize + 深拷贝
 
-        camera.getScreenR().clear();
+        camera.getScreen()->clear();
         camera.Shoot();
-        const auto after = camera.getScreenR().at(PoSize{SCREEN_W / 2, SCREEN_H / 2});
+        const auto after = camera.getScreen()->at(PoSize{SCREEN_W / 2, SCREEN_H / 2});
 
         const bool ok = before.R == 10 && before.G == 20 && before.B == 30 &&
                         after.R == 200 && after.G == 100 && after.B == 50 &&

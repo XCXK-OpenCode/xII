@@ -25,6 +25,7 @@
 #include "Space/Point.h"
 #include "Time/OffsetPoint.h"
 #include "Time/Point.h"
+#include <algorithm>
 
 constexpr int SCREEN_WIDTH = 1280;
 constexpr int SCREEN_HEIGHT = 720;
@@ -186,17 +187,17 @@ int main() {
 
         scene.standard.getObject()->clear();
         scene.standard.getObject()->addItem(image);
-        scene.standard.getScreenR().clear();
+        scene.standard.getScreen()->clear();
         scene.standard.Shoot();
 
-        const auto& out = scene.standard.getScreenR();
+        const auto& out = scene.standard.getScreen();
         const int64_t left = static_cast<int64_t>(rect.left);
         const int64_t top = static_cast<int64_t>(rect.top);
 
         size_t mismatch = 0;
         for (int y = 0; y < 8; ++y)
             for (int x = 0; x < 8; ++x)
-                if (!samePixel(out.at({left + x, top + y}), src.at({x, y})))
+                if (!samePixel(out->at({left + x, top + y}), src.at({x, y})))
                     ++mismatch;
 
         const bool ok = rect.valid && std::abs(rect.width() - 8.0) < 0.01 &&
@@ -216,10 +217,10 @@ int main() {
 
         scene.standard.getObject()->clear();
         scene.standard.getObject()->addItem(image);
-        scene.standard.getScreenR().clear();
+        scene.standard.getScreen()->clear();
         scene.standard.Shoot();
 
-        const auto& out = scene.standard.getScreenR();
+        const auto& out = scene.standard.getScreen();
         const int64_t left = static_cast<int64_t>(rect.left);
         const int64_t top = static_cast<int64_t>(rect.top);
 
@@ -229,7 +230,7 @@ int main() {
             for (int x = 0; x < 16; ++x) {
                 int64_t sx = 0, sy = 0;
                 map.sample(left + x, top + y, sx, sy);
-                if (!samePixel(out.at({left + x, top + y}), src.at({sx, sy})))
+                if (!samePixel(out->at({left + x, top + y}), src.at({sx, sy})))
                     ++mismatch;
             }
         }
@@ -238,10 +239,10 @@ int main() {
         size_t block_mismatch = 0;
         for (int y = 0; y < 16; y += 2)
             for (int x = 0; x < 16; x += 2) {
-                const auto p = out.at({left + x, top + y});
-                if (!samePixel(p, out.at({left + x + 1, top + y})) ||
-                    !samePixel(p, out.at({left + x, top + y + 1})) ||
-                    !samePixel(p, out.at({left + x + 1, top + y + 1})))
+                const auto p = out->at({left + x, top + y});
+                if (!samePixel(p, out->at({left + x + 1, top + y})) ||
+                    !samePixel(p, out->at({left + x, top + y + 1})) ||
+                    !samePixel(p, out->at({left + x + 1, top + y + 1})))
                     ++block_mismatch;
             }
 
@@ -264,10 +265,10 @@ int main() {
 
         scene.standard.getObject()->clear();
         scene.standard.getObject()->addItem(image);
-        scene.standard.getScreenR().clear();
+        scene.standard.getScreen()->clear();
         scene.standard.Shoot();
 
-        const auto& out = scene.standard.getScreenR();
+        const auto& out = scene.standard.getScreen();
         const int64_t left = static_cast<int64_t>(rect.left);
         const int64_t top = static_cast<int64_t>(rect.top);
 
@@ -277,7 +278,7 @@ int main() {
             for (int x = 0; x < 32; ++x) {
                 int64_t sx = 0, sy = 0;
                 map.sample(left + x, top + y, sx, sy);
-                if (!samePixel(out.at({left + x, top + y}), src.at({sx, sy})))
+                if (!samePixel(out->at({left + x, top + y}), src.at({sx, sy})))
                     ++mismatch;
             }
         }
@@ -286,9 +287,9 @@ int main() {
         size_t column_mismatch = 0;
         for (int y = 0; y < 8; ++y)
             for (int x = 0; x + 3 < 32; x += 4) {
-                const auto p = out.at({left + x, top + y});
+                const auto p = out->at({left + x, top + y});
                 for (int k = 1; k < 4; ++k)
-                    if (!samePixel(p, out.at({left + x + k, top + y})))
+                    if (!samePixel(p, out->at({left + x + k, top + y})))
                         ++column_mismatch;
             }
 
@@ -311,10 +312,10 @@ int main() {
 
         scene.standard.getObject()->clear();
         scene.standard.getObject()->addItem(image);
-        scene.standard.getScreenR().clear();
+        scene.standard.getScreen()->clear();
         scene.standard.Shoot();
 
-        const auto& out = scene.standard.getScreenR();
+        const auto& out = scene.standard.getScreen();
         const int64_t left = static_cast<int64_t>(rect.left);
         const int64_t top = static_cast<int64_t>(rect.top);
 
@@ -323,7 +324,7 @@ int main() {
             for (int x = 0; x < 4; ++x) {
                 const int64_t sx = x * 2 + 1;
                 const int64_t sy = y * 2 + 1;
-                if (!samePixel(out.at({left + x, top + y}), src.at({sx, sy})))
+                if (!samePixel(out->at({left + x, top + y}), src.at({sx, sy})))
                     ++mismatch;
             }
 
@@ -344,7 +345,7 @@ int main() {
 
         scene.standard.getObject()->clear();
         scene.standard.getObject()->addItem(image);
-        scene.standard.getScreenR().clear();
+        scene.standard.getScreen()->clear();
         scene.standard.Shoot();
 
         const int64_t left = static_cast<int64_t>(rect.left);
@@ -356,7 +357,7 @@ int main() {
         for (int y = 0; y < 4; ++y)
             for (int x = 0; x < 4; ++x) {
                 const auto s = src.at({x, y});
-                const auto d = scene.standard.getScreenR().at({left + x, top + y});
+                const auto d = scene.standard.getScreen()->at({left + x, top + y});
                 const auto expect = [](uint8_t c) {
                     return static_cast<int>(std::lround(static_cast<double>(c) * 128.0 / 255.0));
                 };
@@ -386,7 +387,7 @@ int main() {
 
         scene.standard.getObject()->clear();
         scene.standard.getObject()->addItem(image);
-        scene.standard.getScreenR().clear();
+        scene.standard.getScreen()->clear();
         scene.standard.getObject()->Render(scene.standard, args);
 
         const int64_t left = static_cast<int64_t>(rect.left);
@@ -397,7 +398,7 @@ int main() {
         for (int y = 0; y < 4; ++y)
             for (int x = 0; x < 4; ++x) {
                 const auto s = src.at({x, y});
-                const auto d = scene.standard.getScreenR().at({left + x, top + y});
+                const auto d = scene.standard.getScreen()->at({left + x, top + y});
                 const auto expect = [](uint8_t c) {
                     return static_cast<int>(std::lround(static_cast<double>(c) * 128.0 / 255.0));
                 };
@@ -415,9 +416,9 @@ int main() {
         // alpha = 0 时一个像素都不应该画
         Item::Renderer::Args zero;
         zero.setAlpha(0);
-        scene.standard.getScreenR().clear();
+        scene.standard.getScreen()->clear();
         scene.standard.getObject()->Render(scene.standard, zero);
-        const size_t ink = countInk(scene.standard.getScreenR());
+        const size_t ink = countInk(*scene.standard.getScreen());
         report("args alpha=0", ink == 0, "ink=" + std::to_string(ink));
     }
 
@@ -439,9 +440,9 @@ int main() {
 
         scene.standard.getObject()->clear();
         scene.standard.getObject()->addItem(outside);
-        scene.standard.getScreenR().clear();
+        scene.standard.getScreen()->clear();
         scene.standard.Shoot();
-        const size_t ink_outside = countInk(scene.standard.getScreenR());
+        const size_t ink_outside = countInk(*scene.standard.getScreen());
 
         report("isInRange", in_1 && !in_2 && in_3 && ink_outside == 0,
                "inside=" + std::to_string(in_1 ? 1 : 0) +
@@ -459,31 +460,31 @@ int main() {
 
         scene.outline.getObject()->clear();
         scene.outline.getObject()->addItem(image);
-        scene.outline.getScreenR().clear();
+        scene.outline.getScreen()->clear();
         scene.outline.Shoot();
 
-        const auto& out = scene.outline.getScreenR();
+        const auto& out = scene.outline.getScreen();
         const Item::Image::ScreenRect rect = image->getScreenRect(scene.outline);
 
         // 内部采样点：x=25%、y=50%，不在四条边、两条对角线、也不在四角上。
         const int64_t sx = static_cast<int64_t>(rect.left + rect.width() * 0.25);
         const int64_t sy = static_cast<int64_t>(rect.top + rect.height() * 0.50);
-        const auto p = out.at({sx, sy});
+        const auto p = out->at({sx, sy});
 
         // 除边框颜色（白）与背景（黑）之外不应有任何像素：
         // 源图里全是彩色，一旦被画出来就会命中这个计数。
-        const auto* data = out.getData();
+        const auto* data = out->getData();
         size_t colored = 0;
-        for (int64_t y = 0; y < out.getSize().y; ++y)
-            for (int64_t x = 0; x < out.getSize().x; ++x) {
-                const auto& c = data[y * out.getSize().x + x];
+        for (int64_t y = 0; y < out->getSize().y; ++y)
+            for (int64_t x = 0; x < out->getSize().x; ++x) {
+                const auto& c = data[y * out->getSize().x + x];
                 const bool white = c.R == 255 && c.G == 255 && c.B == 255;
                 const bool black = c.R == 0 && c.G == 0 && c.B == 0;
                 if (!white && !black)
                     ++colored;
             }
 
-        const bool ok = countInk(out) > 0 && colored == 0 && p.R == 0 && p.G == 0 && p.B == 0;
+        const bool ok = countInk(*out) > 0 && colored == 0 && p.R == 0 && p.G == 0 && p.B == 0;
         report("outline camera", ok,
                "border ink>0, interior=(" + std::to_string(p.R) + "," + std::to_string(p.G) + "," +
                    std::to_string(p.B) + "), non-border-colored pixels=" + std::to_string(colored));
@@ -549,10 +550,10 @@ int main() {
         scene.standard.getObject()->clear();
         scene.standard.getObject()->addItem(empty);
         scene.standard.getObject()->addItem(zero_size);
-        scene.standard.getScreenR().clear();
+        scene.standard.getScreen()->clear();
         scene.standard.Shoot();
 
-        const size_t ink = countInk(scene.standard.getScreenR());
+        const size_t ink = countInk(*scene.standard.getScreen());
         report("empty/zero size", ink == 0 && !zero_size->isInRange(scene.standard),
                "ink=" + std::to_string(ink) + ", zero-size isInRange=" +
                    std::to_string(zero_size->isInRange(scene.standard) ? 1 : 0));
@@ -568,7 +569,7 @@ int main() {
             scene.standard.getObject()->addItem(item);
 
             for (int i = 0; i < 5; ++i) { // 预热
-                scene.standard.getScreenR().clear();
+                scene.standard.getScreen()->clear();
                 scene.standard.Shoot();
             }
 
@@ -576,7 +577,7 @@ int main() {
             for (int batch = 0; batch < 5; ++batch) {
                 const auto start = clock::now();
                 for (int i = 0; i < iterations; ++i) {
-                    scene.standard.getScreenR().clear();
+                    scene.standard.getScreen()->clear();
                     scene.standard.Shoot();
                 }
                 const auto end = clock::now();
@@ -589,14 +590,14 @@ int main() {
         const auto bench_clear = [&]() {
             scene.standard.getObject()->clear();
             for (int i = 0; i < 5; ++i) {
-                scene.standard.getScreenR().clear();
+                scene.standard.getScreen()->clear();
                 scene.standard.Shoot();
             }
             double best = 1e9;
             for (int batch = 0; batch < 5; ++batch) {
                 const auto start = clock::now();
                 for (int i = 0; i < 30; ++i) {
-                    scene.standard.getScreenR().clear();
+                    scene.standard.getScreen()->clear();
                     scene.standard.Shoot();
                 }
                 const auto end = clock::now();
@@ -664,7 +665,7 @@ int main() {
     SDL_Surface* window_surface = SDL_GetWindowSurface(window);
     SDL_Surface* surface = SDL_CreateSurfaceFrom(
         SCREEN_WIDTH, SCREEN_HEIGHT, SDL_PIXELFORMAT_BGRA8888,
-        scene.standard.getScreenR().getData(), SCREEN_WIDTH * 4);
+        scene.standard.getScreen()->getData(), SCREEN_WIDTH * 4);
     if (!window_surface || !surface) {
         std::cerr << "surface failed: " << SDL_GetError() << std::endl;
         SDL_DestroyWindow(window);
@@ -739,8 +740,8 @@ int main() {
                 static_cast<Val>(d.base_h / factor * PX)));
         }
 
-        scene.standard.getTimePointR()->add();
-        scene.standard.getScreenR().clear();
+        scene.standard.getTimePoint()->add();
+        scene.standard.getScreen()->clear();
         scene.standard.Shoot();
 
         SDL_BlitSurface(surface, nullptr, window_surface, nullptr);

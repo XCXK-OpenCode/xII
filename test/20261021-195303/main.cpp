@@ -508,7 +508,7 @@ int main() {
     SDL_Surface* window_surface = SDL_GetWindowSurface(window);
     SDL_Surface* surface = SDL_CreateSurfaceFrom(
         SCREEN_WIDTH, SCREEN_HEIGHT, SDL_PIXELFORMAT_BGRA8888,
-        scene.standard.getScreenR().getData(), SCREEN_WIDTH * 4);
+        scene.standard.getScreen()->getData(), SCREEN_WIDTH * 4);
     if (!window_surface || !surface) {
         std::cerr << "surface failed: " << SDL_GetError() << std::endl;
         SDL_DestroyWindow(window);
@@ -550,8 +550,8 @@ int main() {
                 static_cast<Val>(card.base_h * fy * (RANGE_H / SCREEN_HEIGHT))));
         }
 
-        scene.standard.getTimePointR()->add();
-        scene.standard.getScreenR().clear();
+        scene.standard.getTimePoint()->add();
+        scene.standard.getScreen()->clear();
         scene.standard.Shoot();
 
         SDL_BlitSurface(surface, nullptr, window_surface, nullptr);

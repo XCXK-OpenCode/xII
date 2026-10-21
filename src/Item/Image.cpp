@@ -21,7 +21,7 @@ namespace xII::Item {
         if (pr.first == nullptr || pr.second == nullptr)
             return rect;
 
-        const auto screen_size = camera.getScreenR().getSize();
+        const auto screen_size = camera.getScreen()->getSize();
         if (screen_size.x <= 0 || screen_size.y <= 0)
             return rect;
 
@@ -71,7 +71,7 @@ namespace xII::Item {
         const double view_y = static_cast<double>(view_center->getY());
 
         // 像素图不会超出目标矩形，只留 1px 折算成场景单位抵消取整误差。
-        const auto screen_size = camera.getScreenR().getSize();
+        const auto screen_size = camera.getScreen()->getSize();
         const double scene_per_px_x = (screen_size.x > 0) ? view_w / static_cast<double>(screen_size.x) : 0.0;
         const double scene_per_px_y = (screen_size.y > 0) ? view_h / static_cast<double>(screen_size.y) : 0.0;
 
@@ -85,8 +85,8 @@ namespace xII::Item {
     }
 
     void Image::Render(Camera::Standard& camera, Item::Renderer::Args args) const {
-        auto& dest_screen = camera.getScreenR();
-        const auto screen_size = dest_screen.getSize();
+        auto dest_screen = camera.getScreen();
+        const auto screen_size = dest_screen->getSize();
 
         const auto src_size = _screen.getSize();
         const ScreenRect rect = getScreenRect(camera);
@@ -95,7 +95,7 @@ namespace xII::Item {
         if (rect.valid && src_size.x > 0 && src_size.y > 0 &&
             screen_size.x > 0 && screen_size.y > 0) {
             const auto* src_data = _screen.getData();
-            auto* dest_data = dest_screen.getData();
+            auto* dest_data = dest_screen->getData();
 
             // 与屏幕求交：只遍历真正可见的像素。
             const int64_t x0 = std::max<int64_t>(0, static_cast<int64_t>(std::ceil(rect.left)));
@@ -189,7 +189,7 @@ namespace xII::Item {
 
     void Image::Render(Camera::Outline& camera) const {
         Screen::PoSize screen_point = {0, 0};
-        auto screen_size = camera.getScreenR().getSize();
+        auto screen_size = camera.getScreen()->getSize();
         auto map_point = camera.getPoint();
         auto map_size = camera.getRange();
 
@@ -197,13 +197,13 @@ namespace xII::Item {
         auto points = _shape.getPoints(0);
         for (auto ItA = points.begin(); ItA != points.end(); ++ItA)
             for (auto ItB = ItA; ItB != points.end(); ++ItB)
-                Renderer::Line::draw_line(camera.getScreenR(),
+                Renderer::Line::draw_line(*camera.getScreen(),
                                           Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, *ItA),
                                           Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, *ItB),
                                           camera.getColor,
                                           camera.getWidth(),
                                           {0, 0},
-                                          camera.getScreenR().getSize());
+                                          camera.getScreen()->getSize());
 
         for (const auto& subitem : _subitems)
             if (subitem->isInRange(camera))
