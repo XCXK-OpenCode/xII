@@ -90,7 +90,7 @@ namespace xII::Item::Renderer {
 
     void Line::Render(Camera::Base& camera, std::vector<std::shared_ptr<Space::Point>>& points, Args &args, const Screen::PoSize& item_pos, const Screen::PoSize& item_size) const {
         Screen::PoSize screen_point = {0, 0};
-        auto screen_size = camera.getScreenR().getSize();
+        auto screen_size = camera.getScreen()->getSize();
         auto map_point = camera.getPoint();
         auto map_size = camera.getRange();
 
@@ -107,7 +107,7 @@ namespace xII::Item::Renderer {
         for (size_t i = 0; i < n; i++) {
             auto a = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[i]);
             auto b = Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, points[(i + 1) % n]);
-            draw_line(camera.getScreenR(), a, b, args.getColor, args.getWidth(), item_pos, item_size, coverage_ptr);
+            draw_line(*camera.getScreen(), a, b, args.getColor, args.getWidth(), item_pos, item_size, coverage_ptr);
         }
     }
 } // namespace xII::Item::Renderer

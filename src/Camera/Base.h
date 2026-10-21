@@ -15,32 +15,28 @@ namespace xII::Camera {
     class Base {
     protected:
         Item::Shape::Rectangle _shape;
-        Screen::Screen _screen;
+        std::shared_ptr<Screen::Screen> _screen;
         std::shared_ptr<Item::Base> _object;
         std::shared_ptr<Time::OffsetPoint> _time_point;
 
     public:
         Base(const Item::Shape::Rectangle& shape, const Screen::PoSize& screen_size, const std::shared_ptr<Item::Base>& object, const std::shared_ptr<Time::OffsetPoint>& time_point)
             : _shape(shape),
-              _screen(screen_size),
               _object(object),
-              _time_point(time_point) {}
+              _time_point(time_point) { _screen = std::make_shared<Screen::Screen>(screen_size); }
 
         virtual ~Base() = default;
 
         Item::Shape::Rectangle getShape() const { return _shape; }
         void setShape(const Item::Shape::Rectangle& shape) { _shape = shape; }
 
-        Screen::Screen getScreen() const { return _screen; }
-        Screen::Screen& getScreenR() { return _screen; }
-        const Screen::Screen& getScreenR() const { return _screen; }
-        void setScreen(const Screen::Screen& screen) { _screen = screen; }
+        std::shared_ptr<Screen::Screen> getScreen() const { return _screen; }
+        void setScreen(const std::shared_ptr<Screen::Screen>& screen) { _screen = screen; }
 
         std::shared_ptr<Item::Base> getObject() const { return _object; }
         void setObject(const std::shared_ptr<Item::Base>& object) { _object = object; }
 
         std::shared_ptr<Time::OffsetPoint> getTimePoint() const { return _time_point; }
-        std::shared_ptr<Time::OffsetPoint>& getTimePointR() { return _time_point; }
         void setTimePoint(const std::shared_ptr<Time::OffsetPoint>& time_point) { _time_point = time_point; }
 
         std::shared_ptr<const Space::Point> getPoint() { return _shape.getP2(); }
