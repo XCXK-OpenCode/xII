@@ -4,7 +4,8 @@
 //      同尺寸深拷贝、尺寸不同自动 resize、空句柄安全、自拷贝、链式 a << b << c
 // 2) 端到端：mini 相机渲染 -> 拷进 Image 的屏幕 -> 主相机把它当贴图画出来
 // 3) 零拷贝（Ref）对照：camera.setScreen(image.getScreen()) 共享同一块缓冲
-// 4) 开窗演示：画中画（PiP），空格在 copy / ref 两种方式之间切换
+// 4) 开窗演示：画中画（PiP），Space 在 copy / ref 两种方式之间切换；
+//    R/G/B 三块与画中画 Image 都在动
 // 5) 可选：XII_PIP_DUMP=/path/frame.bmp 导出画面（配合 XII_PIP_DUMP_ONLY=1）
 //          XII_PIP_HEADLESS=1 只跑校验不开窗
 
@@ -373,28 +374,43 @@ int main() {
     }
 
     // ============================================================ 可视演示
-    //主相机场景：三块色块
+    //主相机场景：三块色块（R / G / B），每块各自沿椭圆轨迹移动
     MiniScene scene(RANGE_W, RANGE_H, {SCREEN_WIDTH, SCREEN_HEIGHT});
-    scene.addSolid({255, 255, 63, 63}, 500, 500, -400, -220);
-    scene.addSolid({255, 63, 255, 63}, 500, 500, 0, 0);
-    scene.addSolid({255, 63, 63, 255}, 500, 500, 400, 220);
+    auto r_block = scene.addSolid({255, 255, 63, 63}, 500, 500, -400, -220);
+    auto g_block = scene.addSolid({255, 63, 255, 63}, 500, 500, 0, 0);
+    auto b_block = scene.addSolid({255, 63, 63, 255}, 500, 500, 400, 220);
 
-    //画中画相机场景：两块绕圈运动的色块
-    MiniScene mini(RANGE_W, RANGE_H, {PIP_WIDTH, PIP_HEIGHT});
-    mini.addSolid({255, 250, 240, 120}, 700, 700, 0, 0);
-    auto orbit_a = mini.addSolid({255, 60, 240, 250}, 420, 420, 0, 0);
-    auto orbit_b = mini.addSolid({255, 250, 160, 60}, 220, 220, 0, 0);
+    // 每个色块的初始中心，动画围绕它做椭圆运动（场景单位）
+    struct Motion {
+        MiniScene::SolidBlock block;
+        double base_x, base_y; // 初始中心
+        double radius_x, radius_y; // 椭圆半径
+        double phase;              // 相位
+        double speed;              // 角速度倍率
+    };
 
-    //画中画贴图（场景单位 640x360，右上角）
+    const Motion motions[] = {
+        {r_block, -400, -220, 260, 150, 0.0, 1.0},
+        {g_block, 0, 0, 300, 180, 2.1, 0.85},
+        {b_block, 400, 220, 260, 150, 4.2, 1.15},
+    };
+
+    //画中画相机场景：底色铺满视口 + 两块绕圈运动的色块
+    constexpr double PIP_RANGE_W = 900.0;
+    constexpr double PIP_RANGE_H = 506.0;
+    MiniScene mini(PIP_RANGE_W, PIP_RANGE_H, {PIP_WIDTH, PIP_HEIGHT});
+    mini.addSolid({255, 250, 240, 120}, PIP_RANGE_W * 2.0, PIP_RANGE_H * 2.0, 0, 0);
+    auto orbit_a = mini.addSolid({255, 60, 240, 250}, 260, 260, 0, 0);
+    auto orbit_b = mini.addSolid({255, 250, 160, 60}, 140, 140, 0, 0);
+
+    //画中画贴图（场景单位 640x360，会绕屏幕中心公转并循环缩放）
     constexpr double PIP_SCENE_W = 640.0;
     constexpr double PIP_SCENE_H = 360.0;
-    constexpr double PIP_SCENE_X = RANGE_W / 2.0 - PIP_SCENE_W / 2.0 - 40.0;
-    constexpr double PIP_SCENE_Y = RANGE_H / 2.0 - PIP_SCENE_H / 2.0 - 40.0;
 
     auto pip_image = std::make_shared<Item::Image>(
         Screen::PoSize{PIP_WIDTH, PIP_HEIGHT},
         Item::Shape::Rectangle(
-            std::make_shared<Space::OffsetPoint>(scene.root, Space::Offset(PIP_SCENE_X, PIP_SCENE_Y)),
+            std::make_shared<Space::OffsetPoint>(scene.root, Space::Offset(0, 0)),
             static_cast<Val>(PIP_SCENE_W), static_cast<Val>(PIP_SCENE_H)));
     scene.camera.getObject()->addItem(pip_image);
 
@@ -480,8 +496,31 @@ int main() {
 
         t += 0.016;
 
+        // ---------- 主场景：R/G/B 三块各自绕初始中心做椭圆运动 ----------
+        for (const auto& m : motions) {
+            const double a = t * m.speed + m.phase;
+            m.block.shape->setCenter(std::make_shared<Space::OffsetPoint>(
+                scene.root,
+                Space::Offset(m.base_x + std::cos(a) * m.radius_x,
+                              m.base_y + std::sin(a * 1.4) * m.radius_y)));
+        }
+
+        // ---------- 画中画 Image：绕屏幕中心公转 + 尺寸呼吸 ----------
+        {
+            constexpr double ORBIT_X = 560.0;
+            constexpr double ORBIT_Y = 300.0;
+            const double breath = 1.0 + 0.18 * std::sin(t * 1.7);
+
+            pip_image->setShape(Item::Shape::Rectangle(
+                std::make_shared<Space::OffsetPoint>(
+                    scene.root,
+                    Space::Offset(std::cos(t * 0.6) * ORBIT_X, std::sin(t * 0.6) * ORBIT_Y)),
+                static_cast<Val>(PIP_SCENE_W * breath),
+                static_cast<Val>(PIP_SCENE_H * breath)));
+        }
+
         //画中画场景动画
-        const double orbit = 380.0;
+        const double orbit = 200.0;
         orbit_a.shape->setCenter(
             std::make_shared<Space::OffsetPoint>(mini.root, Space::Offset(std::cos(t) * orbit, std::sin(t) * orbit)));
         orbit_b.shape->setCenter(
@@ -514,15 +553,22 @@ int main() {
         frame_count.fetch_add(1, std::memory_order_relaxed);
 
         // 无交互环境下的可视验证：XII_PIP_DUMP=/path/frame.bmp
+        // 可选 XII_PIP_DUMP_FRAME=N：等到第 N 帧再导出（验证动画确实在动）
         if (!dumped) {
             if (const char* dump_path = std::getenv("XII_PIP_DUMP"); dump_path != nullptr) {
-                if (SDL_SaveBMP(surface, dump_path))
-                    std::cout << "dumped frame to " << dump_path << std::endl;
-                else
-                    std::cerr << "SDL_SaveBMP failed: " << SDL_GetError() << std::endl;
-                dumped = true;
-                if (const char* only = std::getenv("XII_PIP_DUMP_ONLY"); only != nullptr && std::string(only) == "1")
-                    isDone.store(true);
+                long dump_at = 0;
+                if (const char* at = std::getenv("XII_PIP_DUMP_FRAME"); at != nullptr)
+                    dump_at = std::strtol(at, nullptr, 10);
+
+                if (static_cast<long>(frame_count.load(std::memory_order_relaxed)) >= dump_at) {
+                    if (SDL_SaveBMP(surface, dump_path))
+                        std::cout << "dumped frame to " << dump_path << " at t=" << t << std::endl;
+                    else
+                        std::cerr << "SDL_SaveBMP failed: " << SDL_GetError() << std::endl;
+                    dumped = true;
+                    if (const char* only = std::getenv("XII_PIP_DUMP_ONLY"); only != nullptr && std::string(only) == "1")
+                        isDone.store(true);
+                }
             }
         }
     }
