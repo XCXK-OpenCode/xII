@@ -147,7 +147,7 @@ namespace xII::Item::Renderer {
                       const Screen::PoSize& item_pos,
                       const Screen::PoSize& item_size) const {
         Screen::PoSize screen_point = {0, 0};
-        auto screen_size = camera.getScreenR().getSize();
+        auto screen_size = camera.getScreen()->getSize();
         auto map_point   = camera.getPoint();
         auto map_size    = camera.getRange();
 
@@ -162,6 +162,6 @@ namespace xII::Item::Renderer {
                                      screen_size, points[i]));
         }
 
-        draw_fill(camera.getScreenR(), screen_pts, args.getColor, item_pos, item_size);
+        draw_fill(*camera.getScreen(), screen_pts, args.getColor, item_pos, item_size);
     }
 } // namespace xII::Item::Renderer

@@ -91,11 +91,11 @@ int main() {
     }
     // ----- SDL3 创建 Surface -----
     SDL_Surface* surface = SDL_CreateSurfaceFrom(
-        camera.getScreenR().getSize().x, // 宽度
-        camera.getScreenR().getSize().y, // 高度
+        camera.getScreen()->getSize().x, // 宽度
+        camera.getScreen()->getSize().y, // 高度
         SDL_PIXELFORMAT_BGRA8888,
-        camera.getScreenR().getData(),
-        camera.getScreenR().getSize().x * 4 // pitch（每行字节数）
+        camera.getScreen()->getData(),
+        camera.getScreen()->getSize().x * 4 // pitch（每行字节数）
     );
 
     if (!surface) {
@@ -120,7 +120,7 @@ int main() {
             }
         }
         std::cout << "Time: " << camera.getTimePoint()->getTime() << std::endl;
-        camera.getTimePointR()->add();
+        camera.getTimePoint()->add();
         camera.Shoot();
         SDL_BlitSurface(surface, NULL, gWinSfc, NULL);
         SDL_UpdateWindowSurface(gWindow);

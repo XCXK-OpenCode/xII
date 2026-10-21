@@ -112,11 +112,11 @@ int main(int argc, char** argv) {
 
     // Create SDL surface from camera's screen data
     SDL_Surface* surface = SDL_CreateSurfaceFrom(
-        camera.getScreenR().getSize().x, // Width
-        camera.getScreenR().getSize().y, // Height
+        camera.getScreen()->getSize().x, // Width
+        camera.getScreen()->getSize().y, // Height
         SDL_PIXELFORMAT_BGRA8888,
-        camera.getScreenR().getData(),
-        camera.getScreenR().getSize().x * 4 // Pitch (bytes per row)
+        camera.getScreen()->getData(),
+        camera.getScreen()->getSize().x * 4 // Pitch (bytes per row)
     );
 
     if (!surface) {
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
                 isDone = true;
 
         // Update camera and render to window
-        camera.getScreenR().clear();
+        camera.getScreen()->clear();
         camera.Shoot();
         SDL_BlitSurface(surface, NULL, gWinSfc, NULL);
         SDL_UpdateWindowSurface(gWindow);

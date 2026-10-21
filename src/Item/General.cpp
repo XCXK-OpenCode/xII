@@ -49,7 +49,7 @@ namespace xII::Item {
         if (const auto* outline = dynamic_cast<const Camera::Outline*>(&camera))
             stroke_half_px += static_cast<double>(outline->getWidth()) / 2.0;
 
-        const auto screen_size = camera.getScreenR().getSize();
+        const auto screen_size = camera.getScreen()->getSize();
         const double scene_per_px_x = (screen_size.x > 0) ? view_w / static_cast<double>(screen_size.x) : 0.0;
         const double scene_per_px_y = (screen_size.y > 0) ? view_h / static_cast<double>(screen_size.y) : 0.0;
 
@@ -70,8 +70,8 @@ namespace xII::Item {
         auto points = _shape->getPoints(0);
 
         auto item_pr = _shape->getPR();
-        auto item_pos = Screen::Point2PoSize(camera.getPoint(), camera.getRange(), {0, 0}, camera.getScreenR().getSize(), item_pr.first);
-        auto item_epos = Screen::Point2PoSize(camera.getPoint(), camera.getRange(), {0, 0}, camera.getScreenR().getSize(), item_pr.second);
+        auto item_pos = Screen::Point2PoSize(camera.getPoint(), camera.getRange(), {0, 0}, camera.getScreen()->getSize(), item_pr.first);
+        auto item_epos = Screen::Point2PoSize(camera.getPoint(), camera.getRange(), {0, 0}, camera.getScreen()->getSize(), item_pr.second);
         auto item_size = Screen::PoSize{item_epos.x - item_pos.x, item_epos.y - item_pos.y};
 
         for (auto& renderer : _renderers)
@@ -83,20 +83,20 @@ namespace xII::Item {
     
     void General::Render(Camera::Outline& camera) const {
         Screen::PoSize screen_point = {0, 0};
-        auto screen_size = camera.getScreenR().getSize();
+        auto screen_size = camera.getScreen()->getSize();
         auto map_point = camera.getPoint();
         auto map_size = camera.getRange();
 
         auto points = _shape->getPoints(0);
         for (auto ItA = points.begin(); ItA != points.end(); ++ItA)
             for (auto ItB = ItA; ItB != points.end(); ++ItB)
-                Renderer::Line::draw_line(camera.getScreenR(),
+                Renderer::Line::draw_line(*camera.getScreen(),
                                           Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, *ItA),
                                           Screen::Point2PoSize(map_point, map_size, screen_point, screen_size, *ItB),
                                           camera.getColor,
                                           camera.getWidth(), 
                                           {0, 0},
-                                          camera.getScreenR().getSize());
+                                          camera.getScreen()->getSize());
         for (const auto& subitem : _subitems)
             if (subitem->isInRange(camera))
                 subitem->Render(camera);                             
