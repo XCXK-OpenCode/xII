@@ -511,7 +511,7 @@ namespace {
     // 文字保持纵横比不变，所以统一使用纵向缩放（screen_h / range_h）。
     double cameraScale(xII::Camera::Base& camera) {
         const auto range = camera.getRange();
-        const auto size = camera.getScreenR().getSize();
+        const auto size = camera.getScreen()->getSize();
         const double height = static_cast<double>(range.getY());
         if (height <= 0.0 || size.y <= 0)
             return 1.0;
@@ -532,7 +532,7 @@ namespace {
             return clip;
 
         const auto range = camera.getRange();
-        const auto screen_size = camera.getScreenR().getSize();
+        const auto screen_size = camera.getScreen()->getSize();
         const auto map_point = camera.getPoint();
 
         const double range_x = static_cast<double>(range.getX());
@@ -762,13 +762,13 @@ namespace xII::Item {
         if (layout.glyphs.empty())
             return;
 
-        auto& screen = camera.getScreenR();
-        const int64_t width = screen.getSize().x;
-        const int64_t height = screen.getSize().y;
+        auto screen = camera.getScreen();
+        const int64_t width = screen->getSize().x;
+        const int64_t height = screen->getSize().y;
         if (width <= 0 || height <= 0)
             return;
 
-        Screen::Screen::Pixel* data = screen.getData();
+        Screen::Screen::Pixel* data = screen->getData();
 
         // Rectangle.center 是文本块的中心：
         // 宽高 > 0 用手指定的值，否则按内容自适应。
@@ -777,7 +777,7 @@ namespace xII::Item {
                                                          : layout.height;
 
         const Screen::PoSize center = Screen::Point2PoSize(
-            camera.getPoint(), camera.getRange(), {0, 0}, screen.getSize(), _shape.getCenter());
+            camera.getPoint(), camera.getRange(), {0, 0}, screen->getSize(), _shape.getCenter());
         const Screen::PoSize anchor{center.x - static_cast<int64_t>(std::llround(box_w / 2.0)),
                                     center.y - static_cast<int64_t>(std::llround(box_h / 2.0))};
 
@@ -878,9 +878,9 @@ namespace xII::Item {
         if (layout.glyphs.empty())
             return;
 
-        auto& screen = camera.getScreenR();
-        const int64_t width = screen.getSize().x;
-        const int64_t height = screen.getSize().y;
+        auto screen = camera.getScreen();
+        const int64_t width = screen->getSize().x;
+        const int64_t height = screen->getSize().y;
         if (width <= 0 || height <= 0)
             return;
 
@@ -889,7 +889,7 @@ namespace xII::Item {
                                                          : layout.height;
 
         const Screen::PoSize center = Screen::Point2PoSize(
-            camera.getPoint(), camera.getRange(), {0, 0}, screen.getSize(), _shape.getCenter());
+            camera.getPoint(), camera.getRange(), {0, 0}, screen->getSize(), _shape.getCenter());
         const Screen::PoSize anchor{center.x - static_cast<int64_t>(std::llround(box_w / 2.0)),
                                     center.y - static_cast<int64_t>(std::llround(box_h / 2.0))};
         const Screen::PoSize item_pos = anchor;
@@ -900,14 +900,14 @@ namespace xII::Item {
         std::vector<uint8_t> coverage;
         std::vector<uint8_t>* coverage_ptr = nullptr;
         const auto probe_color = camera.getColor(
-            Item::Renderer::Args::DrawContext{{0, 0}, screen.getSize(), item_pos, item_size});
+            Item::Renderer::Args::DrawContext{{0, 0}, screen->getSize(), item_pos, item_size});
         if (probe_color.A < 255) {
             coverage.assign(static_cast<size_t>(width) * static_cast<size_t>(height), 0);
             coverage_ptr = &coverage;
         }
 
         OutlineContext context;
-        context.screen = &screen;
+        context.screen = screen.get();
         context.anchor = anchor;
         context.get_color = &camera.getColor;
         context.width = camera.getWidth();

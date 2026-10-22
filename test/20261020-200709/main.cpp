@@ -134,17 +134,17 @@ Screen::Screen renderFrame(const std::shared_ptr<Item::Text>& item, const double
                                       std::make_shared<Item::Base>(), time_point,
                                       Screen::Screen::Pixel{255, 255, 255, 255}, 1);
         camera.getObject()->addItem(item);
-        camera.getScreenR().clear();
+        camera.getScreen()->clear();
         camera.Shoot();
-        return camera.getScreenR();
+        return *camera.getScreen();
     }
 
     auto camera = Camera::Standard(shape, {SCREEN_WIDTH, SCREEN_HEIGHT},
                                    std::make_shared<Item::Base>(), time_point);
     camera.getObject()->addItem(item);
-    camera.getScreenR().clear();
+    camera.getScreen()->clear();
     camera.Shoot();
-    return camera.getScreenR();
+    return *camera.getScreen();
 }
 
 bool isInk(const Screen::Screen::Pixel& pixel) {
@@ -712,8 +712,8 @@ int main() {
         return surface;
     };
 
-    SDL_Surface* surface_cpu = makeSurface(camera.getScreenR(), "cpu");
-    SDL_Surface* surface_outline = makeSurface(outline_camera.getScreenR(), "outline");
+    SDL_Surface* surface_cpu = makeSurface(*camera.getScreen(), "cpu");
+    SDL_Surface* surface_outline = makeSurface(*outline_camera.getScreen(), "outline");
     if (!surface_cpu || !surface_outline) {
         is_done.store(true);
         fps_thread.join();
@@ -753,12 +753,12 @@ int main() {
             ? static_cast<Camera::Base*>(&outline_camera)
             : static_cast<Camera::Base*>(&camera);
 
-        active->getTimePointR()->add();
-        active->getScreenR().clear();
+        active->getTimePoint()->add();
+        active->getScreen()->clear();
         active->Shoot();
 
         if (!first_frame_checked) {
-            const size_t non_black = countNonBlack(active->getScreenR());
+            const size_t non_black = countNonBlack(*active->getScreen());
             std::cout << "first " << (outline_mode ? "outline" : "standard")
                       << " frame: non-black pixels = " << non_black
                       << " (expected > 0)  " << (non_black > 0 ? "PASS" : "FAIL") << std::endl;

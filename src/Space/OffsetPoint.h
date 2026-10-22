@@ -12,7 +12,7 @@ namespace xII::Space {
     template <typename Offset_Type>
     class OffsetPointRoot : public Point {
     protected:
-        const std::shared_ptr<Point> _origin;
+        std::shared_ptr<Point> _origin;
         Offset_Type _offset;
 
     public:
@@ -33,7 +33,6 @@ namespace xII::Space {
         Offset_Type getOffset() const { return _offset; }
         Offset_Type &getOffsetRef() { return _offset; }
         const Offset_Type &getOffsetRef() const { return _offset; }
-        void setOffset(const Offset_Type& offset) { _offset = offset; }
 
         // 点本身是“活的”引用：持有它的 Item / Camera 每帧都会重新调用 getX()/getY()，
         // 所以修改 offset 后不需要重建对象，也不需要重新 set 给使用者。

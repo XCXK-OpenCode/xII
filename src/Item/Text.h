@@ -9,6 +9,7 @@
 
 #include "Shape/Rectangle.h"
 #include "Screen/PoSize.h"
+#include "Space/Point.h"
 
 #include <cstdint>
 #include <memory>
@@ -17,10 +18,6 @@
 
 // 只前向声明 FreeType 的 face 类型，避免所有包含 Text.h 的编译单元都被迫引入 ft2build.h。
 typedef struct FT_FaceRec_* FT_Face;
-
-namespace xII::Space {
-    class Point;
-}
 
 namespace xII::Item {
     // 基于 FreeType 的文字 Item。
