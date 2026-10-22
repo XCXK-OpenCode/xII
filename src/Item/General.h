@@ -35,5 +35,11 @@ namespace xII::Item {
 
         void Render(Camera::Standard& camera, Item::Renderer::Args args) const override;
         void Render(Camera::Outline& camera) const override;
+
+        // 形状包围盒（_shape->getPR() 的两角）与相机视口（Camera 的 Rectangle）
+        // 是否相交。false 时父级会直接跳过本 Item 的 Render，不产生任何像素。
+        // 只做“整块完全离开视口”的剔除：跨在边界上的块返回 true，
+        // 描边宽度（Outline 相机的 getWidth()）会折算进余量，避免粗线条被提前剔掉。
+        [[nodiscard]] bool isInRange(const Camera::Base& camera) const override;
     };
 } // namespace xII::Item
