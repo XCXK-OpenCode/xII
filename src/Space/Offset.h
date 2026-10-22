@@ -20,8 +20,10 @@ namespace xII::Space {
         Value_Type getX() const { return _x; }
         Value_Type getY() const { return _y; }
 
-        void setX(const Value_Type &x) const { _x = x; }
-        void setY(const Value_Type &y) const { _y = y; }
+        // 不能是 const 成员函数：在 const 函数里所有成员都是只读的，
+        // 一旦被实例化（如 getOffsetRef().setX(v)）就会编译失败。
+        void setX(const Value_Type &x) { _x = x; }
+        void setY(const Value_Type &y) { _y = y; }
 
     };
 

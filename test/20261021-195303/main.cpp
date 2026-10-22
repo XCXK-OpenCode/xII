@@ -1,3 +1,8 @@
+// 
+// Created by qpwser from XCXK on 2026-10-21
+// Powered by DeepSeek V4.1 Flash
+//
+
 // Screen::RGBA8888 拷贝/移动/赋值语义 —— 可视测试（仿照 test/20261021-190336 的样式）
 //
 // 做法：把每种拷贝方式得到的结果图交给 Item::Image 显示在屏幕上，

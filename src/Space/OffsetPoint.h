@@ -12,7 +12,7 @@ namespace xII::Space {
     template <typename Offset_Type>
     class OffsetPointRoot : public Point {
     protected:
-        const std::shared_ptr<Point> _origin;
+        std::shared_ptr<Point> _origin;
         Offset_Type _offset;
 
     public:

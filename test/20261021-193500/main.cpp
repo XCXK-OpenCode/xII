@@ -1,3 +1,8 @@
+// 
+// Created by qpwser from XCXK on 2026-10-21
+// Powered by DeepSeek V4.1 Flash
+//
+
 // Screen::RGBA8888 的拷贝/移动/赋值语义测试。
 //
 // 背景：RGBA8888::operator= 内部会 _resize()（delete[] 旧缓冲 + new[] 新缓冲）。

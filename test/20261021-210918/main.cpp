@@ -1,3 +1,8 @@
+// 
+// Created by qpwser from XCXK on 2026-10-21
+// Powered by DeepSeek V4.1 Flash
+//
+
 // `image.getScreen() << camera.getScreen()`（屏幕拷贝 / 引用）测试。
 //
 // 1) 无窗口逐像素校验 operator<<：
@@ -406,12 +411,28 @@ int main() {
     //画中画贴图（场景单位 640x360，会绕屏幕中心公转并循环缩放）
     constexpr double PIP_SCENE_W = 640.0;
     constexpr double PIP_SCENE_H = 360.0;
+    constexpr double PIP_BORDER = 16.0; // 白色底框每边的宽度（场景单位）
+
+    // 白底框与贴图共用同一个中心点，所以动画只需移动这一个点。
+    auto pip_center = std::make_shared<Space::OffsetPoint>(scene.root, Space::Offset(0, 0));
+
+    // 白色背景框：比贴图四周各大 PIP_BORDER，作为“相框”垫在贴图下面。
+    // 先 addItem，所以它先画，贴图会盖在它上面。
+    auto pip_frame_rect = std::make_shared<Item::Shape::Rectangle>(
+        pip_center,
+        static_cast<Val>(PIP_SCENE_W + PIP_BORDER * 2.0),
+        static_cast<Val>(PIP_SCENE_H + PIP_BORDER * 2.0));
+
+    auto pip_frame = std::make_shared<Item::General>(
+        pip_frame_rect,
+        std::vector<std::shared_ptr<Item::Renderer::Base>>{
+            std::make_shared<Item::Renderer::SetColor>(Screen::Screen::Pixel{255, 255, 255, 255}),
+            std::make_shared<Item::Renderer::Fill>()});
+    scene.camera.getObject()->addItem(pip_frame);
 
     auto pip_image = std::make_shared<Item::Image>(
         Screen::PoSize{PIP_WIDTH, PIP_HEIGHT},
-        Item::Shape::Rectangle(
-            std::make_shared<Space::OffsetPoint>(scene.root, Space::Offset(0, 0)),
-            static_cast<Val>(PIP_SCENE_W), static_cast<Val>(PIP_SCENE_H)));
+        Item::Shape::Rectangle(pip_center, static_cast<Val>(PIP_SCENE_W), static_cast<Val>(PIP_SCENE_H)));
     scene.camera.getObject()->addItem(pip_image);
 
     //拷贝模式：每帧 image.getScreen() << mini.getScreen()
@@ -505,18 +526,25 @@ int main() {
                               m.base_y + std::sin(a * 1.4) * m.radius_y)));
         }
 
-        // ---------- 画中画 Image：绕屏幕中心公转 + 尺寸呼吸 ----------
+        // ---------- 画中画：白框 + 贴图共用同一个中心点，只动这个点 ----------
         {
             constexpr double ORBIT_X = 560.0;
             constexpr double ORBIT_Y = 300.0;
             const double breath = 1.0 + 0.18 * std::sin(t * 1.7);
 
-            pip_image->setShape(Item::Shape::Rectangle(
-                std::make_shared<Space::OffsetPoint>(
-                    scene.root,
-                    Space::Offset(std::cos(t * 0.6) * ORBIT_X, std::sin(t * 0.6) * ORBIT_Y)),
-                static_cast<Val>(PIP_SCENE_W * breath),
-                static_cast<Val>(PIP_SCENE_H * breath)));
+            // 公转：改共用点的偏移即可，白框与贴图会一起移动
+            pip_center->setOffset(Space::Offset(std::cos(t * 0.6) * ORBIT_X, std::sin(t * 0.6) * ORBIT_Y));
+
+            // 呼吸缩放：贴图与白框同步改变宽高，白框始终保持 PIP_BORDER 的恒定厚度
+            const auto w = static_cast<Val>(PIP_SCENE_W * breath);
+            const auto h = static_cast<Val>(PIP_SCENE_H * breath);
+
+            auto& img_rect = pip_image->getShapeRef();
+            img_rect.setWidth(w);
+            img_rect.setHeight(h);
+
+            pip_frame_rect->setWidth(w + static_cast<Val>(PIP_BORDER * 2.0));
+            pip_frame_rect->setHeight(h + static_cast<Val>(PIP_BORDER * 2.0));
         }
 
         //画中画场景动画

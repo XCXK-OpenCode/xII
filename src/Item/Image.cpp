@@ -1,5 +1,6 @@
 //
 // Created by qpwser from XCXK on 2026-10-21
+// Powered by DeepSeek V4.1 Flash
 //
 
 #include "Image.h"

@@ -1,3 +1,8 @@
+// 
+// Created by qpwser from XCXK on 2026-10-21
+// Powered by DeepSeek V4.1 Flash
+//
+
 // Item::Image 测试：源图 -> 场景矩形（拉伸/缩放）的最近邻采样。
 // 先做无窗口的逐像素校验，再开窗口做可视演示（空格切换拉伸方式）。
 
