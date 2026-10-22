@@ -3,7 +3,9 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/libs/freetype/include",
+                "${workspaceFolder}/libs/SDL/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
