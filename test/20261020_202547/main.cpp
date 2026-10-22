@@ -209,9 +209,9 @@ int main() {
 
         pan_x = std::clamp(pan_x - dx_px / scale, -CAMERA_PAN_LIMIT, CAMERA_PAN_LIMIT);
         pan_y = std::clamp(pan_y - dy_px / scale, -CAMERA_PAN_LIMIT, CAMERA_PAN_LIMIT);
-        camera_center->setOffset(
-            static_cast<xII::Base::Quantity::Base_Value_Type>(pan_x),
-            static_cast<xII::Base::Quantity::Base_Value_Type>(pan_y));
+        
+        camera_center->getOffsetRef().setX(static_cast<xII::Base::Quantity::Base_Value_Type>(pan_x));
+        camera_center->getOffsetRef().setY(static_cast<xII::Base::Quantity::Base_Value_Type>(pan_y));
 
         // 拖动时每帧都改窗口标题太浪费，这里只更新标题不打印。
         update_status(false);
@@ -222,8 +222,8 @@ int main() {
         camera_width = CAMERA_BASE_WIDTH;
         pan_x = 0.0;
         pan_y = 0.0;
-        camera_center->setOffset(static_cast<xII::Base::Quantity::Base_Value_Type>(0.0),
-                                 static_cast<xII::Base::Quantity::Base_Value_Type>(0.0));
+        camera_center->getOffsetRef().setX(static_cast<xII::Base::Quantity::Base_Value_Type>(0.0));
+        camera_center->getOffsetRef().setY(static_cast<xII::Base::Quantity::Base_Value_Type>(0.0));
         apply_zoom_shape();
         update_status(true);
     };
