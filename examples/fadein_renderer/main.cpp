@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
             std::make_shared<Item::Renderer::Fadein<Item::Renderer::Curves::Line>>(root_time_point, Time::Offset(100)), // Fadein renderer
             std::make_shared<Item::Renderer::SetColor>(Screen::Screen::Pixel{255, 255, 255, 255}),  // Color
             std::make_shared<Item::Renderer::SetWidth>(2),  // Width
-            std::make_shared<Item::Renderer::Fill>()    // Line 
+            std::make_shared<Item::Renderer::Fill>()    // Fill 
         }
     ));
 
