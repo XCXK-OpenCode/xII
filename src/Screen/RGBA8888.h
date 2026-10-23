@@ -17,6 +17,7 @@ namespace xII::Screen {
     private:
         // 必须初始化：_resize() 会 delete[] 旧缓冲，默认构造时若是野指针就会
         // 触发 "free(): invalid pointer"（operator= 现在内部会走 _resize）。
+        // 此处或许需要换用std::shared_ptr，有空再换
         Pixel* _data = nullptr;
         PoSize _size{0, 0};
 
