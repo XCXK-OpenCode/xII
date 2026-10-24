@@ -48,5 +48,6 @@ namespace xII::Item {
         virtual bool isInRange(const Camera::Base& camera) const;
         virtual void Render(Camera::Standard& camera, Item::Renderer::Args args) const;
         virtual void Render(Camera::Outline& camera) const;
+        virtual void Render(Camera::Base& camera) const { }
     };
 } // namespace xII::Item
